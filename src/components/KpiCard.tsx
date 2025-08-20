@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
 import { fetchKpis, fetchSeries } from '../lib/api'
@@ -42,7 +43,12 @@ export default function KpiCard({
   const points = seriesQ.data?.points || []
 
   return (
-    <div className="card">
+    <motion.div
+      className="card"
+      initial={{ opacity: 0, y: 0 }}
+      animate={{ opacity: 80, y: 0 }}
+      transition={{ duration: 1.5 }}
+    >
       <div className="card-title">{title}</div>
       <div className="grid grid-cols-3 gap-3">
         <Metric label={labels[0]} value={k[0]} />
@@ -62,6 +68,6 @@ export default function KpiCard({
           </BarChart>
         </ResponsiveContainer>
       </div>
-    </div>
+    </motion.div>
   )
 }

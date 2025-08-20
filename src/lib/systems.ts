@@ -11,7 +11,7 @@ export const SYSTEMS: Record<SystemKey, SystemDef> = {
   google_ads: { title: 'Google Ads', labels: ['Custo', 'Leads', 'Cliques'], chartType: 'bar' },
   piperun: { title: 'PipeRun (Oportunidades)', labels: ['Recebidas', 'Ganhas', 'Perdidas'], chartType: 'bar' },
   conta_azul: { title: 'Conta Azul (Pagamentos)', labels: ['A receber', 'Recebidas', 'Clientes novos'], chartType: 'bar' },
-  cpj3c: { title: 'CPJ-3C', labels: ['Audiências', 'Perícias', 'Processos'], chartType: 'bar' },
+  cpj3c: { title: 'CPJ-3C (Processos)', labels: ['Audiências', 'Perícias', 'Processos'], chartType: 'bar' },
   ti: { title: 'T.I (Chamados)', labels: ['Abertos', 'Em andamento', 'Resolvidos'], chartType: 'bar' },
   liderhub: { title: 'Liderhub (Atendimentos)', labels: ['Aguardando', 'Em andamento', 'Finalizadas'], chartType: 'bar' },
   n8n: { title: 'N8N (Execuções)', labels: ['Fluxos', 'Sucesso', 'Falhas'], chartType: 'line' },

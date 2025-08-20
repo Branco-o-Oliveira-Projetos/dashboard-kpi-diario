@@ -40,6 +40,22 @@ SISTEMAS_DB = {
         'kpi_cols': ['flows_total', 'runs_success', 'runs_failed'],
         'chart_col': 'runs_success',
     },
+    'conta_azul': {
+        'schema': 'kpi_tv',
+        'tabela': 'conta_azul_daily',
+        'filtro_col': '',
+        'filtro_val': '',
+        'kpi_cols': ['clientes_novos', 'a_receber_total', 'recebidas_total'],
+        'chart_col': 'recebidas_total',
+    },
+    'cpj3c': {
+        'schema': 'kpi_tv',
+        'tabela': 'cpj_daily',
+        'filtro_col': '',
+        'filtro_val': 'HJDfVFxTb7w1KNDD',
+        'kpi_cols': ['audiencias', 'pericias', 'processos'],
+        'chart_col': 'audiencias',
+    },
 }
 
 def get_kpi_and_series(system: str) -> tuple[Dict[str, Any], Dict[str, Any]]:

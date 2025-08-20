@@ -78,7 +78,7 @@ return (
         </div>
       )}
 
-      <footer className="mt-6 text-sm text-text2">© 2025 B&O - Todos os direitos reservados</footer>
+    <footer className="mt-6 text-sm text-text2 flex justify-end">© 2025 B&O - Todos os direitos reservados</footer>
     </div>
   )
 }
