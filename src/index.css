@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .card {
+    @apply bg-bg border border-gray-200 rounded-2xl p-4 shadow-sm;
+  }
+  
+  .card-title {
+    @apply font-semibold text-lg text-text mb-3;
+  }
+  
+  .chip {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm bg-bg2 text-text2;
+  }
+  
+  .status {
+    @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border;
+  }
+}
