@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instale as dependências
-RUN npm install
+RUN npm install && npm install vite --save-dev
 
 # Copie o restante do código
 COPY . .
