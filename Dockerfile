@@ -11,6 +11,9 @@ RUN npm install && npm install vite --save-dev
 # Copie o restante do código
 COPY . .
 
+# Adicione o diretório node_modules/.bin ao PATH
+ENV PATH="./node_modules/.bin:$PATH"
+
 ENV VITE_API_BASE_URL=https://dashboardkpidiarioapi.automacoesbeo.xyz
 
 # Construa o projeto
