@@ -6,7 +6,7 @@ COPY . .
 
 ENV VITE_API_BASE_URL=http://dashboardkpidiarioapi.automacoesbeo.xyz
 
-RUN npm install && npm run build
+RUN npm install && npm install typescript --save-dev && npm run build
 
 EXPOSE 1633
 CMD ["npm", "run", "dev", "--", "--port", "1633", "--host", "0.0.0.0"]
