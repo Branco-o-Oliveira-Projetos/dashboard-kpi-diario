@@ -16,6 +16,9 @@ ENV PATH="./node_modules/.bin:$PATH"
 
 ENV VITE_API_BASE_URL=https://dashboardkpidiarioapi.automacoesbeo.xyz
 
+# Corrija as permissões dos binários no node_modules/.bin
+RUN chmod -R +x ./node_modules/.bin
+
 # Construa o projeto
 RUN npm run build
 
