@@ -23,4 +23,4 @@ RUN chmod -R +x ./node_modules/.bin
 RUN npm run build
 
 EXPOSE 1633
-CMD ["npm", "preview"]
+CMD ["npm", "run", "preview"]
