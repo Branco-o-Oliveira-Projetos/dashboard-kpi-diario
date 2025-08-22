@@ -37,7 +37,7 @@ SISTEMAS_DB = {
         'tabela': 'n8n_daily',
         'filtro_col': 'workspace_id',
         'filtro_val': 'HJDfVFxTb7w1KNDD',
-        'kpi_cols': ['flows_total', 'runs_success', 'runs_failed'],
+        'kpi_cols': ['flows_total', 'runs_success', 'runs_failed', 'avg_duration_sec'],
         'chart_col': 'runs_success',
     },
     'conta_azul': {
@@ -52,9 +52,41 @@ SISTEMAS_DB = {
         'schema': 'kpi_tv',
         'tabela': 'cpj_daily',
         'filtro_col': '',
-        'filtro_val': 'HJDfVFxTb7w1KNDD',
+        'filtro_val': '',
         'kpi_cols': ['audiencias', 'pericias', 'processos'],
         'chart_col': 'audiencias',
+    },
+    'meta_ads': {
+        'schema': 'kpi_tv',
+        'tabela': 'meta_ads_daily',
+        'filtro_col': '',
+        'filtro_val': '',
+        'kpi_cols': ['cost', 'leads', 'clicks', 'cpl', 'cpc'],
+        'chart_col': 'clicks',
+    },
+    'google_ads': {
+        'schema': 'kpi_tv',
+        'tabela': 'google_ads_daily',
+        'filtro_col': '',
+        'filtro_val': '',
+        'kpi_cols': ['cost', 'leads', 'clicks', 'cpl', 'cpc'],
+        'chart_col': 'clicks',
+    },
+    'ti': {
+        'schema': 'kpi_tv',
+        'tabela': 'ti_daily',
+        'filtro_col': '',
+        'filtro_val': '',
+        'kpi_cols': ['abertos', 'em_andamento', 'resolvidos'],
+        'chart_col': 'resolvidos',
+    },
+    'liderhub': {
+        'schema': 'kpi_tv',
+        'tabela': 'liderhub_daily',
+        'filtro_col': '',
+        'filtro_val': '',
+        'kpi_cols': ['aguardando', 'em_andamento', 'finalizadas'],
+        'chart_col': 'finalizadas',
     },
 }
 
@@ -72,32 +104,48 @@ def get_kpi_and_series(system: str) -> tuple[Dict[str, Any], Dict[str, Any]]:
     
     with pool.connection() as conn:
         with conn.cursor() as cur:
-            # KPIs - última linha
-            kpi_query = f"""
-                SELECT {', '.join(kpi_cols)}, updated_at
-                FROM {schema}.{tabela}
-                WHERE {filtro_col} = %s
-                ORDER BY ref_date DESC
-                LIMIT 1
-            """
-            cur.execute(kpi_query, (filtro_val,))
-            kpi_row = cur.fetchone()
-            
-            if not kpi_row:
-                raise HTTPException(status_code=404, detail="Dados não encontrados")
-            
-            kpi_values = list(kpi_row[:-1])
-            updated_at = kpi_row[-1]
+            # Ajuste para calcular soma ou média conforme necessário
+            if system in ['meta_ads', 'google_ads']:
+                kpi_query = f"""
+                    SELECT 
+                        AVG(cost) AS cost_avg,
+                        SUM(leads) AS leads_sum,
+                        SUM(clicks) AS clicks_sum,
+                        AVG(cpl) AS cpl_avg,
+                        AVG(cpc) AS cpc_avg,
+                        MAX(updated_at) AS updated_at
+                    FROM {schema}.{tabela}
+                    {"WHERE " + filtro_col + " = %s" if filtro_col else ""}
+                """
+                cur.execute(kpi_query, (filtro_val,) if filtro_col else ())
+                kpi_row = cur.fetchone()
+                kpi_values = list(kpi_row[:-1])
+                updated_at = kpi_row[-1]
+            else:
+                # KPIs - última linha
+                kpi_query = f"""
+                    SELECT {', '.join(kpi_cols)}, updated_at
+                    FROM {schema}.{tabela}
+                    {"WHERE " + filtro_col + " = %s" if filtro_col else ""}
+                    ORDER BY ref_date DESC
+                    LIMIT 1
+                """
+                cur.execute(kpi_query, (filtro_val,) if filtro_col else ())
+                kpi_row = cur.fetchone()
+                if not kpi_row:
+                    raise HTTPException(status_code=404, detail="Dados não encontrados")
+                kpi_values = list(kpi_row[:-1])
+                updated_at = kpi_row[-1]
             
             # Série - últimos 14 dias
             series_query = f"""
                 SELECT ref_date, {chart_col}
                 FROM {schema}.{tabela}
-                WHERE {filtro_col} = %s
+                {"WHERE " + filtro_col + " = %s" if filtro_col else ""}
                 ORDER BY ref_date DESC
                 LIMIT 14
             """
-            cur.execute(series_query, (filtro_val,))
+            cur.execute(series_query, (filtro_val,) if filtro_col else ())
             series_rows = cur.fetchall()
             
             # Inverter ordem para cronológica crescente
