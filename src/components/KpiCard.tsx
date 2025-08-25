@@ -2,20 +2,22 @@ import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
 import { fetchKpis, fetchSeries } from '../lib/api'
-import { fmtNum } from '../lib/format'
+import { fmtNum, fmtMoney } from '../lib/format'
 import type { SystemKey } from '../types'
 
 interface KpiCardProps {
   system: SystemKey
   title: string
-  labels: [string, string, string]
+  labels: string[]
   autoRefreshMs: number | false
 }
 
-function Metric({ label, value }: { label: string; value: number | null }) {
+function Metric({ label, value, isMoney }: { label: string; value: number | null; isMoney?: boolean }) {
   return (
     <div className="text-center">
-      <div className="text-2xl font-bold text-text">{fmtNum(value)}</div>
+      <div className="text-2xl font-bold text-text">
+        {isMoney ? fmtMoney(value) : fmtNum(value)}
+      </div>
       <div className="text-xs text-text2 mt-1">{label}</div>
     </div>
   )
@@ -39,7 +41,7 @@ export default function KpiCard({
     refetchInterval: autoRefreshMs || false,
   })
 
-  const k = kpisQ.data?.values || [null, null, null]
+  const k = kpisQ.data?.values || []
   const points = seriesQ.data?.points || []
 
   return (
@@ -50,19 +52,40 @@ export default function KpiCard({
       transition={{ duration: 1.5 }}
     >
       <div className="card-title">{title}</div>
-      <div className="grid grid-cols-3 gap-3">
-        <Metric label={labels[0]} value={k[0]} />
-        <Metric label={labels[1]} value={k[1]} />
-        <Metric label={labels[2]} value={k[2]} />
+      <div
+        className="gap-3"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: `repeat(${labels.length}, minmax(0, 1fr))`
+        }}
+      >
+        {labels.map((label, idx) => {
+          // Para meta_ads e google_ads, os índices 0, 3, 4 são dinheiro
+          const isMoney = (
+            (system === 'meta_ads' || system === 'google_ads') &&
+            (idx === 0 || idx === 3 || idx === 4)
+          )
+          return (
+            <Metric key={label} label={label} value={k[idx]} isMoney={isMoney} />
+          )
+        })}
       </div>
 
       <div className="h-28 mt-3">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={points}>
-            <XAxis dataKey="x" tickFormatter={(value) => String(new Date(value).getDate())} />
-            <Bar dataKey="y" fill="#06004B" radius={6} label={{ position: 'center', fill: '#E8E8E8' }} />
-            <Tooltip 
-              labelFormatter={(value) => new Date(value).toLocaleDateString('pt-BR')}
+            <XAxis
+              dataKey="x"
+              tickFormatter={(value) => String(new Date(value).getUTCDate())}
+            />
+            <Bar
+              dataKey="y"
+              fill="#06004B"
+              radius={6}
+              label={{ position: 'center', fill: '#8a98ff' }}
+            />
+            <Tooltip
+              labelFormatter={(value) => String(new Date(value).getUTCDate())}
               formatter={(value: number) => [fmtNum(value), '']}
             />
           </BarChart>

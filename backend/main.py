@@ -74,7 +74,7 @@ SISTEMAS_DB = {
     },
     'ti': {
         'schema': 'kpi_tv',
-        'tabela': 'ti_daily',
+        'tabela': 'ti_chamados_daily',
         'filtro_col': '',
         'filtro_val': '',
         'kpi_cols': ['abertos', 'em_andamento', 'resolvidos'],
@@ -121,6 +121,18 @@ def get_kpi_and_series(system: str) -> tuple[Dict[str, Any], Dict[str, Any]]:
                 kpi_row = cur.fetchone()
                 kpi_values = list(kpi_row[:-1])
                 updated_at = kpi_row[-1]
+
+                # Série - últimos 14 dias (agrupando e somando clicks por dia)
+                series_query = f"""
+                    SELECT ref_date, SUM(clicks) as clicks_sum
+                    FROM {schema}.{tabela}
+                    {"WHERE " + filtro_col + " = %s" if filtro_col else ""}
+                    GROUP BY ref_date
+                    ORDER BY ref_date DESC
+                    LIMIT 14
+                """
+                cur.execute(series_query, (filtro_val,) if filtro_col else ())
+                series_rows = cur.fetchall()
             else:
                 # KPIs - última linha
                 kpi_query = f"""
@@ -137,21 +149,21 @@ def get_kpi_and_series(system: str) -> tuple[Dict[str, Any], Dict[str, Any]]:
                 kpi_values = list(kpi_row[:-1])
                 updated_at = kpi_row[-1]
             
-            # Série - últimos 14 dias
-            series_query = f"""
-                SELECT ref_date, {chart_col}
-                FROM {schema}.{tabela}
-                {"WHERE " + filtro_col + " = %s" if filtro_col else ""}
-                ORDER BY ref_date DESC
-                LIMIT 14
-            """
-            cur.execute(series_query, (filtro_val,) if filtro_col else ())
-            series_rows = cur.fetchall()
+                # Série - últimos 14 dias
+                series_query = f"""
+                    SELECT ref_date, {chart_col}
+                    FROM {schema}.{tabela}
+                    {"WHERE " + filtro_col + " = %s" if filtro_col else ""}
+                    ORDER BY ref_date DESC
+                    LIMIT 14
+                """
+                cur.execute(series_query, (filtro_val,) if filtro_col else ())
+                series_rows = cur.fetchall()
             
             # Inverter ordem para cronológica crescente
             series_points = [
                 {
-                    "x": row[0].isoformat() if isinstance(row[0], datetime) else str(row[0]),
+                    "x": row[0].date().isoformat() if isinstance(row[0], datetime) else str(row[0]),
                     "y": float(row[1]) if row[1] is not None else 0
                 }
                 for row in reversed(series_rows)
