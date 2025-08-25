@@ -15,7 +15,7 @@ interface KpiCardProps {
 function Metric({ label, value, isMoney }: { label: string; value: number | null; isMoney?: boolean }) {
   return (
     <div className="text-center">
-      <div className="text-2xl font-bold text-text">
+      <div className="text-lg font-bold text-text">
         {isMoney ? fmtMoney(value) : fmtNum(value)}
       </div>
       <div className="text-xs text-text2 mt-1">{label}</div>
@@ -80,9 +80,9 @@ export default function KpiCard({
             />
             <Bar
               dataKey="y"
-              fill="#06004B"
+              fill="#06004B" // Definição de Cor da barra no gráfico.
               radius={6}
-              label={{ position: 'center', fill: '#8a98ff' }}
+              label={{ position: 'center', fill: '#fefefb' }} // Definição de Cor do número dentro da barra no gráfico.
             />
             <Tooltip
               labelFormatter={(value) => String(new Date(value).getUTCDate())}

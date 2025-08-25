@@ -77,7 +77,7 @@ SISTEMAS_DB = {
         'tabela': 'ti_chamados_daily',
         'filtro_col': '',
         'filtro_val': '',
-        'kpi_cols': ['abertos', 'em_andamento', 'resolvidos'],
+        'kpi_cols': ['abertos', 'andamento', 'resolvidos'],
         'chart_col': 'resolvidos',
     },
     'liderhub': {
@@ -148,12 +148,13 @@ def get_kpi_and_series(system: str) -> tuple[Dict[str, Any], Dict[str, Any]]:
                     raise HTTPException(status_code=404, detail="Dados não encontrados")
                 kpi_values = list(kpi_row[:-1])
                 updated_at = kpi_row[-1]
-            
-                # Série - últimos 14 dias
+
+                # Série - últimos 14 dias (agrupando por data e somando o campo do gráfico)
                 series_query = f"""
-                    SELECT ref_date, {chart_col}
+                    SELECT ref_date, SUM({chart_col}) as value_sum
                     FROM {schema}.{tabela}
                     {"WHERE " + filtro_col + " = %s" if filtro_col else ""}
+                    GROUP BY ref_date
                     ORDER BY ref_date DESC
                     LIMIT 14
                 """
