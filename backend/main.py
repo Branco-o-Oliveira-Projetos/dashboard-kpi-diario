@@ -109,7 +109,7 @@ def get_kpi_and_series(system: str) -> tuple[Dict[str, Any], Dict[str, Any]]:
                 # KPIs - soma do dia mais recente
                 kpi_query = f"""
                     SELECT 
-                        AVG(cost) AS cost_avg,
+                        SUM(cost) AS cost_sum,
                         SUM(leads) AS leads_sum,
                         SUM(clicks) AS clicks_sum,
                         AVG(cpl) AS cpl_avg,
