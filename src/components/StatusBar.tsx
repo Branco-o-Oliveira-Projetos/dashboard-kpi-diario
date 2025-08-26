@@ -27,7 +27,7 @@ export default function StatusBar({ cycle }: StatusBarProps) {
   return (
     <div className="bg-bg2 rounded-xl p-3 mb-4 flex items-center justify-between text-sm text-text2">
       <span>Atualizado: {formattedTime}</span>
-      <span>Auto-refresh: 10 min • ciclo #{cycle}</span>
+      <span>Auto-refresh: 3 min • ciclo #{cycle}</span>
     </div>
   )
 }

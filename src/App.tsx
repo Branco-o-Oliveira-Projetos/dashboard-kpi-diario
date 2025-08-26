@@ -1,37 +1,45 @@
 import { useEffect, useMemo, useState } from "react";
-
 import Logo from "./image/logo.png";
-
 import StatusBar from "./components/StatusBar";
 import KpiCard from "./components/KpiCard";
 import { SYSTEM_ORDER, SYSTEMS } from "./lib/systems";
 import type { SystemKey } from "./types";
 
+// Quantidade de cards por página do carrossel
 const CARDS_PER_PAGE = 4;
 
 function App() {
+  // Estado para controle do auto-refresh dos dados
   const [autoRefresh, setAutoRefresh] = useState(true);
+  // Estado para controle do ciclo de atualização
   const [cycle, setCycle] = useState(0);
+  // Estado para controle da página do carrossel
   const [page, setPage] = useState(0);
 
+  // Efeito para atualizar o ciclo a cada 3 minutos se autoRefresh estiver ativo
   useEffect(() => {
     if (!autoRefresh) return;
-    const id = setInterval(() => setCycle((c) => c + 1), 10 * 60 * 1000);
+    const id = setInterval(() => setCycle((c) => c + 1), 3 * 60 * 1000);
     return () => clearInterval(id);
   }, [autoRefresh]);
 
+  // Lista dos sistemas definidos
   const systems = SYSTEM_ORDER;
+  // Calcula o número total de páginas do carrossel
   const numPages = Math.max(1, Math.ceil(systems.length / CARDS_PER_PAGE));
 
-  // carrossel a cada 5s
+  // Efeito para avançar o carrossel a cada 15 segundos
   useEffect(() => {
-    const id = setInterval(() => setPage((p) => (p + 1) % numPages), 5000);
+    const id = setInterval(() => setPage((p) => (p + 1) % numPages), 15000);
     return () => clearInterval(id);
   }, [numPages]);
 
+  // Calcula o índice inicial dos sistemas da página atual
   const start = page * CARDS_PER_PAGE;
+  // Seleciona os sistemas da página atual
   const pageSystems = systems.slice(start, start + CARDS_PER_PAGE);
 
+  // Organiza os sistemas em duas linhas para o grid
   const grid = useMemo(
     () => [pageSystems.slice(0, 2), pageSystems.slice(2, 4)],
     [pageSystems]
@@ -39,6 +47,7 @@ function App() {
 
   return (
     <div className="max-w-[1280px] mx-auto p-3 md:p-4">
+      {/* Barra superior com logo, título e auto-refresh */}
       <div className="flex items-center gap-2 mb-2">
         <img src={Logo} alt="B&O" className="h-8" onError={() => {}} />
         <div className="flex-1" />
@@ -56,8 +65,10 @@ function App() {
         </label>
       </div>
 
+      {/* Barra de status com data/hora e ciclo */}
       <StatusBar cycle={cycle} />
 
+      {/* Renderiza os cards dos KPIs em grid */}
       {grid.map((row, i) => (
         <div
           key={i}
@@ -72,13 +83,14 @@ function App() {
                 title={def.title}
                 labels={def.labels}
                 chartType={def.chartType}
-                autoRefreshMs={autoRefresh ? 10 * 60 * 1000 : false}
+                autoRefreshMs={autoRefresh ? 3 * 60 * 1000 : false}
               />
             );
           })}
         </div>
       ))}
 
+      {/* Controle do carrossel de páginas */}
       {numPages > 1 && (
         <div className="mt-3 flex items-center gap-2">
           <input
@@ -95,6 +107,7 @@ function App() {
         </div>
       )}
 
+      {/* Rodapé */}
       <footer className="mt-6 text-sm text-text2 flex justify-end">
         © 2025 B&O - Todos os direitos reservados
       </footer>
