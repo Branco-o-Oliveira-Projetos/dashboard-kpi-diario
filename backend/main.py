@@ -5,8 +5,10 @@ from fastapi.middleware.cors import CORSMiddleware
 import psycopg_pool
 from config import DATABASE_URL, DB_TIMEOUT
 
+# Inicializa a aplicação FastAPI
 app = FastAPI(title="B&O Dashboard API")
 
+# Configura o middleware de CORS para permitir requisições de qualquer origem
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,6 +17,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Cria o pool de conexões com o banco de dados PostgreSQL
 pool = psycopg_pool.ConnectionPool(
     DATABASE_URL,
     min_size=1,
@@ -23,6 +26,7 @@ pool = psycopg_pool.ConnectionPool(
     timeout=DB_TIMEOUT
 )
 
+# Configuração dos sistemas e seus respectivos parâmetros de consulta
 SISTEMAS_DB = {
     'piperun': {
         'schema': 'kpi_tv',
@@ -91,9 +95,11 @@ SISTEMAS_DB = {
 }
 
 def get_kpi_and_series(system: str) -> tuple[Dict[str, Any], Dict[str, Any]]:
+    # Verifica se o sistema existe na configuração
     if system not in SISTEMAS_DB:
         raise HTTPException(status_code=404, detail="Sistema não encontrado")
     
+    # Recupera as configurações do sistema
     config = SISTEMAS_DB[system]
     schema = config['schema']
     tabela = config['tabela']
@@ -104,9 +110,8 @@ def get_kpi_and_series(system: str) -> tuple[Dict[str, Any], Dict[str, Any]]:
     
     with pool.connection() as conn:
         with conn.cursor() as cur:
-            # Ajuste para calcular soma ou média conforme necessário
+            # Para meta_ads e google_ads, calcula a soma/média dos KPIs do dia mais recente
             if system in ['meta_ads', 'google_ads']:
-                # KPIs - soma do dia mais recente
                 kpi_query = f"""
                     SELECT 
                         SUM(cost) AS cost_sum,
@@ -122,14 +127,14 @@ def get_kpi_and_series(system: str) -> tuple[Dict[str, Any], Dict[str, Any]]:
                     )
                     {"AND " + filtro_col + " = %s" if filtro_col else ""}
                 """
-                # Ajusta os parâmetros conforme filtro
+                # Define os parâmetros para o filtro, se houver
                 params = (filtro_val, filtro_val) if filtro_col else ()
                 cur.execute(kpi_query, params)
                 kpi_row = cur.fetchone()
                 kpi_values = list(kpi_row[:-1])
                 updated_at = kpi_row[-1]
                 
-                # Série - últimos 14 dias (agrupando e somando clicks por dia)
+                # Consulta de séries: soma dos clicks por dia nos últimos 14 dias
                 series_query = f"""
                     SELECT ref_date, SUM(clicks) as clicks_sum
                     FROM {schema}.{tabela}
@@ -141,7 +146,7 @@ def get_kpi_and_series(system: str) -> tuple[Dict[str, Any], Dict[str, Any]]:
                 cur.execute(series_query, (filtro_val,) if filtro_col else ())
                 series_rows = cur.fetchall()
             else:
-                # KPIs - última linha
+                # Para os demais sistemas, pega a última linha dos KPIs
                 kpi_query = f"""
                     SELECT {', '.join(kpi_cols)}, updated_at
                     FROM {schema}.{tabela}
@@ -156,7 +161,7 @@ def get_kpi_and_series(system: str) -> tuple[Dict[str, Any], Dict[str, Any]]:
                 kpi_values = list(kpi_row[:-1])
                 updated_at = kpi_row[-1]
 
-                # Série - últimos 14 dias (agrupando por data e somando o campo do gráfico)
+                # Consulta de séries: soma do campo do gráfico por dia nos últimos 14 dias
                 series_query = f"""
                     SELECT ref_date, SUM({chart_col}) as value_sum
                     FROM {schema}.{tabela}
@@ -168,7 +173,7 @@ def get_kpi_and_series(system: str) -> tuple[Dict[str, Any], Dict[str, Any]]:
                 cur.execute(series_query, (filtro_val,) if filtro_col else ())
                 series_rows = cur.fetchall()
             
-            # Inverter ordem para cronológica crescente
+            # Monta os pontos da série para o frontend (ordem cronológica crescente)
             series_points = [
                 {
                     "x": row[0].date().isoformat() if isinstance(row[0], datetime) else str(row[0]),
@@ -177,11 +182,13 @@ def get_kpi_and_series(system: str) -> tuple[Dict[str, Any], Dict[str, Any]]:
                 for row in reversed(series_rows)
             ]
     
+    # Monta a resposta dos KPIs
     kpis_response = {
         "values": kpi_values,
         "updatedAt": updated_at.isoformat() if isinstance(updated_at, datetime) else str(updated_at)
     }
     
+    # Monta a resposta das séries
     series_response = {
         "points": series_points,
         "label": system
@@ -189,16 +196,19 @@ def get_kpi_and_series(system: str) -> tuple[Dict[str, Any], Dict[str, Any]]:
     
     return kpis_response, series_response
 
+# Endpoint para retornar os KPIs do sistema
 @app.get("/api/kpis/{system}")
 async def get_kpis(system: str):
     kpis, _ = get_kpi_and_series(system)
     return kpis
 
+# Endpoint para retornar a série histórica do sistema
 @app.get("/api/series/{system}")
 async def get_series(system: str):
     _, series = get_kpi_and_series(system)
     return series
 
+# Endpoint raiz para teste da API
 @app.get("/")
 async def root():
     return {"message": "B&O Dashboard API"}
