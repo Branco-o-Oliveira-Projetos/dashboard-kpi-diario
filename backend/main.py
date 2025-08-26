@@ -122,7 +122,6 @@ def get_kpi_and_series(system: str) -> tuple[Dict[str, Any], Dict[str, Any]]:
                     )
                     {"AND " + filtro_col + " = %s" if filtro_col else ""}
                 """
-                # Ajusta os parâmetros conforme filtro
                 params = (filtro_val, filtro_val) if filtro_col else ()
                 cur.execute(kpi_query, params)
                 kpi_row = cur.fetchone()
