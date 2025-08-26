@@ -122,12 +122,13 @@ def get_kpi_and_series(system: str) -> tuple[Dict[str, Any], Dict[str, Any]]:
                     )
                     {"AND " + filtro_col + " = %s" if filtro_col else ""}
                 """
+                # Ajusta os parâmetros conforme filtro
                 params = (filtro_val, filtro_val) if filtro_col else ()
                 cur.execute(kpi_query, params)
                 kpi_row = cur.fetchone()
                 kpi_values = list(kpi_row[:-1])
                 updated_at = kpi_row[-1]
-
+                
                 # Série - últimos 14 dias (agrupando e somando clicks por dia)
                 series_query = f"""
                     SELECT ref_date, SUM(clicks) as clicks_sum
