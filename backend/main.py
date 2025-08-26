@@ -106,6 +106,7 @@ def get_kpi_and_series(system: str) -> tuple[Dict[str, Any], Dict[str, Any]]:
         with conn.cursor() as cur:
             # Ajuste para calcular soma ou média conforme necessário
             if system in ['meta_ads', 'google_ads']:
+                # KPIs - soma do dia mais recente
                 kpi_query = f"""
                     SELECT 
                         AVG(cost) AS cost_avg,
@@ -115,9 +116,15 @@ def get_kpi_and_series(system: str) -> tuple[Dict[str, Any], Dict[str, Any]]:
                         AVG(cpc) AS cpc_avg,
                         MAX(updated_at) AS updated_at
                     FROM {schema}.{tabela}
-                    {"WHERE " + filtro_col + " = %s" if filtro_col else ""}
+                    WHERE ref_date = (
+                        SELECT MAX(ref_date) FROM {schema}.{tabela}
+                        {"WHERE " + filtro_col + " = %s" if filtro_col else ""}
+                    )
+                    {"AND " + filtro_col + " = %s" if filtro_col else ""}
                 """
-                cur.execute(kpi_query, (filtro_val,) if filtro_col else ())
+                # Ajusta os parâmetros conforme filtro
+                params = (filtro_val, filtro_val) if filtro_col else ()
+                cur.execute(kpi_query, params)
                 kpi_row = cur.fetchone()
                 kpi_values = list(kpi_row[:-1])
                 updated_at = kpi_row[-1]
