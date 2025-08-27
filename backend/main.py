@@ -231,7 +231,7 @@ async def get_detailed_data(system: str):
                 LIMIT 1000
             """
             
-            cur.execute(detailed_query, (filtro_val,) if filtro_col else ()
+            cur.execute(detailed_query, (filtro_val,) if filtro_col else ())
             rows = cur.fetchall()
             
             # Pega os nomes das colunas

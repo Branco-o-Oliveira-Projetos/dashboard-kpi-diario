@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import Logo from "./image/logo.png";
+import Logo from "https://s3.automacoesbeo.xyz/logos-empresas/Grupo_B_O.png";
 import StatusBar from "./components/StatusBar";
 import KpiCard from "./components/KpiCard";
 import { SYSTEM_ORDER, SYSTEMS } from "./lib/systems";
