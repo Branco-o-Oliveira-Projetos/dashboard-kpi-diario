@@ -82,3 +82,17 @@ export async function fetchDetailedData(system: string) {
     throw new Error('Failed to fetch detailed data')
   }
 }
+
+export async function fetchPiperunAllPipelines() {
+  if (!apiBaseUrl) {
+    throw new Error('API Base URL not configured')
+  }
+  
+  try {
+    const response = await api.get('/api/detailed/piperun/all')
+    return response.data
+  } catch (error) {
+    console.error('Error fetching PipeRun all pipelines data:', error)
+    throw new Error('Failed to fetch PipeRun all pipelines data')
+  }
+}

@@ -32,7 +32,7 @@ SISTEMAS_DB = {
         'schema': 'kpi_tv',
         'tabela': 'piperun_daily',
         'filtro_col': 'pipeline_id',
-        'filtro_val': '',
+        'filtro_val': '78157',  # Dashboard principal usa apenas esta pipeline
         'kpi_cols': ['oportunidades_recebidas', 'oportunidades_ganhas', 'oportunidades_perdidas'],
         'chart_col': 'oportunidades_recebidas',
     },
@@ -232,6 +232,41 @@ async def get_detailed_data(system: str):
             """
             
             cur.execute(detailed_query, (filtro_val,) if filtro_col else ())
+            rows = cur.fetchall()
+            
+            # Pega os nomes das colunas
+            columns = [desc[0] for desc in cur.description]
+            
+            # Converte os resultados para lista de dicionários
+            detailed_data = []
+            for row in rows:
+                row_dict = {}
+                for i, value in enumerate(row):
+                    if isinstance(value, datetime):
+                        row_dict[columns[i]] = value.isoformat()
+                    else:
+                        row_dict[columns[i]] = value
+                detailed_data.append(row_dict)
+    
+    return detailed_data
+
+@app.get("/api/detailed/piperun/all")
+async def get_piperun_all_pipelines():
+    """Retorna dados das 3 pipelines específicas do PipeRun para a página de detalhes"""
+    pipeline_ids = ['78157', '78175', '78291']
+    
+    with pool.connection() as conn:
+        with conn.cursor() as cur:
+            # Consulta dados das 3 pipelines específicas
+            detailed_query = """
+                SELECT *
+                FROM kpi_tv.piperun_daily
+                WHERE pipeline_id IN %s
+                ORDER BY ref_date DESC, updated_at DESC
+                LIMIT 1000
+            """
+            
+            cur.execute(detailed_query, (tuple(pipeline_ids),))
             rows = cur.fetchall()
             
             # Pega os nomes das colunas

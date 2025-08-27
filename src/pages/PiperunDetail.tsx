@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
-import { fetchDetailedData } from '../lib/api'
+import { fetchPiperunAllPipelines } from '../lib/api'
 import { fmtNum } from '../lib/format'
 import { Link } from 'react-router-dom'
 
@@ -17,8 +17,8 @@ interface PiperunData {
 
 export default function PiperunDetail() {
   const { data, isLoading, error } = useQuery({
-    queryKey: ['piperun-detail'],
-    queryFn: () => fetchDetailedData('piperun'),
+    queryKey: ['piperun-all-pipelines'],
+    queryFn: () => fetchPiperunAllPipelines(),
     refetchInterval: 2 * 60 * 1000, // 2 minutos
   })
 
@@ -77,16 +77,8 @@ export default function PiperunDetail() {
 
   const records: PiperunData[] = data || []
   
-  // IDs específicos das pipelines que queremos exibir
-  const targetPipelineIds = ["78157", "78175", "78291"]
-  
-  // Filtrar apenas os registros das pipelines desejadas
-  const filteredRecords = records.filter(record => 
-    targetPipelineIds.includes(record.pipeline_id)
-  )
-  
-  // Separar dados por pipeline (apenas as 3 específicas)
-  const pipelineData = filteredRecords.reduce((acc, item) => {
+  // Separar dados por pipeline (o backend já filtra pelas 3 pipelines específicas)
+  const pipelineData = records.reduce((acc, item) => {
     if (!acc[item.pipeline_id]) {
       acc[item.pipeline_id] = {
         name: item.pipeline_name,
@@ -97,8 +89,7 @@ export default function PiperunDetail() {
     return acc
   }, {} as Record<string, { name: string; data: PiperunData[] }>)
 
-  // Usar apenas as pipelines filtradas (as 3 específicas do banco)
-  const finalPipelines = Object.values(pipelineData)
+  const pipelines = Object.values(pipelineData)
 
   // Preparar dados diários para cada pipeline
   const preparePipelineData = (pipelineRecords: PiperunData[]) => {
@@ -174,12 +165,24 @@ export default function PiperunDetail() {
               ← Voltar ao Dashboard
             </motion.span>
           </Link>
+          
+          <motion.div
+            className="mt-3 p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-purple-400">🎯 Exibindo pipelines:</span>
+              <span className="text-text font-medium">78157, 78175, 78291</span>
+            </div>
+          </motion.div>
         </motion.div>
       </motion.div>
 
       {/* Layout para todas as pipelines */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-6 mb-6">
-        {finalPipelines.map((pipeline, index) => {
+        {pipelines.map((pipeline, index) => {
           const dailyData = preparePipelineData(pipeline.data)
           const latestRecord = pipeline.data[0] || {}
           const colors = ['#06004B', '#4A90E2', '#10B981', '#F59E0B', '#EF4444']
@@ -414,7 +417,7 @@ export default function PiperunDetail() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 1 }}
         >
-          Registros Recentes - Pipelines Filtradas ({filteredRecords.length} registros)
+          Registros Recentes - Pipelines Específicas ({records.length} registros)
         </motion.h3>
         <motion.div 
           className="overflow-x-auto"
@@ -444,7 +447,7 @@ export default function PiperunDetail() {
               </tr>
             </motion.thead>
             <tbody>
-              {filteredRecords.slice(0, 20).map((record, idx) => {
+              {records.slice(0, 20).map((record, idx) => {
                 const taxa = record.oportunidades_recebidas > 0 ? 
                   (record.oportunidades_ganhas / record.oportunidades_recebidas * 100) : 0
                 return (
