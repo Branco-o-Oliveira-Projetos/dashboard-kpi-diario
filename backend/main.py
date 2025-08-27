@@ -32,7 +32,7 @@ SISTEMAS_DB = {
         'schema': 'kpi_tv',
         'tabela': 'piperun_daily',
         'filtro_col': 'pipeline_id',
-        'filtro_val': '78157', '78175', '78291',
+        'filtro_val': '',
         'kpi_cols': ['oportunidades_recebidas', 'oportunidades_ganhas', 'oportunidades_perdidas'],
         'chart_col': 'oportunidades_recebidas',
     },
