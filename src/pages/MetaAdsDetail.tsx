@@ -153,15 +153,6 @@ export default function MetaAdsDetail() {
             <span className="text-text font-medium ml-2">{selectedCampaign}</span>
           </div>
         )}
-        
-        {/* Indicador do dia atual */}
-        <div className="mt-2 p-2 bg-green-500/10 border border-green-500/20 rounded text-sm">
-          <span className="text-green-400">📅 KPIs do dia:</span>
-          <span className="text-text font-medium ml-2">
-            {mostRecentDate ? new Date(mostRecentDate + 'T00:00:00').toLocaleDateString('pt-BR') : 'N/A'}
-          </span>
-          <span className="text-text2 ml-2">({kpiData.records} registros)</span>
-        </div>
       </div>
 
       {/* KPIs Principais */}
@@ -260,7 +251,7 @@ export default function MetaAdsDetail() {
                 <Line type="monotone" dataKey="leads" stroke="#06004B" strokeWidth={2}>
                   <LabelList 
                     dataKey="leads" 
-                    position="center" 
+                    position="top" 
                     formatter={(value: number) => fmtNum(value)}
                     style={{ fill: '#06004B', fontSize: '10px', fontWeight: 'bold' }}
                     offset={10}

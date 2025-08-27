@@ -175,24 +175,6 @@ export default function PiperunDetail() {
             </motion.span>
           </Link>
         </motion.div>
-        
-        {/* Indicador das pipelines filtradas */}
-        <motion.div
-          className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-        >
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-blue-400">🎯 Pipelines Filtradas:</span>
-            <span className="text-text font-medium">
-              {targetPipelineIds.join(", ")}
-            </span>
-          </div>
-          <div className="text-xs text-text2 mt-1">
-            Exibindo dados das {finalPipelines.length} pipelines específicas ({filteredRecords.length} registros)
-          </div>
-        </motion.div>
       </motion.div>
 
       {/* Layout para todas as pipelines */}
