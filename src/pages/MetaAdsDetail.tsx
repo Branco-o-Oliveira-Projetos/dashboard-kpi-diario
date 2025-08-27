@@ -45,9 +45,17 @@ export default function MetaAdsDetail() {
   const filteredRecords = selectedCampaign 
     ? records.filter(record => record.campaign_name === selectedCampaign)
     : records
-  
-  // Calcular KPIs consolidados
-  const kpiData = filteredRecords.reduce((acc, record) => {
+
+  // Obter data mais recente nos dados
+  const mostRecentDate = filteredRecords.reduce((latest, record) => {
+    const recordDate = new Date(record.ref_date + 'T00:00:00')
+    const latestDate = new Date(latest + 'T00:00:00')
+    return recordDate > latestDate ? record.ref_date : latest
+  }, filteredRecords[0]?.ref_date || '')
+
+  // Calcular KPIs do dia atual (data mais recente)
+  const todayRecords = filteredRecords.filter(record => record.ref_date === mostRecentDate)
+  const kpiData = todayRecords.reduce((acc, record) => {
     acc.totalCost += record.cost || 0
     acc.totalLeads += record.leads || 0
     acc.totalClicks += record.clicks || 0
@@ -145,25 +153,34 @@ export default function MetaAdsDetail() {
             <span className="text-text font-medium ml-2">{selectedCampaign}</span>
           </div>
         )}
+        
+        {/* Indicador do dia atual */}
+        <div className="mt-2 p-2 bg-green-500/10 border border-green-500/20 rounded text-sm">
+          <span className="text-green-400">📅 KPIs do dia:</span>
+          <span className="text-text font-medium ml-2">
+            {mostRecentDate ? new Date(mostRecentDate + 'T00:00:00').toLocaleDateString('pt-BR') : 'N/A'}
+          </span>
+          <span className="text-text2 ml-2">({kpiData.records} registros)</span>
+        </div>
       </div>
 
       {/* KPIs Principais */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <motion.div className="card text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <div className="text-2xl font-bold text-text">{fmtMoney(kpiData.totalCost)}</div>
-          <div className="text-sm text-text2">Custo Total</div>
+          <div className="text-sm text-text2">Custo do Dia</div>
         </motion.div>
         <motion.div className="card text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <div className="text-2xl font-bold text-text">{fmtNum(kpiData.totalLeads)}</div>
-          <div className="text-sm text-text2">Total de Leads</div>
+          <div className="text-sm text-text2">Leads do Dia</div>
         </motion.div>
         <motion.div className="card text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <div className="text-2xl font-bold text-text">{fmtNum(kpiData.totalClicks)}</div>
-          <div className="text-sm text-text2">Total de Clicks</div>
+          <div className="text-sm text-text2">Clicks do Dia</div>
         </motion.div>
         <motion.div className="card text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <div className="text-2xl font-bold text-text">{fmtMoney(avgCPL)}</div>
-          <div className="text-sm text-text2">CPL Médio</div>
+          <div className="text-sm text-text2">CPL do Dia</div>
         </motion.div>
       </div>
 
@@ -171,15 +188,15 @@ export default function MetaAdsDetail() {
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         <motion.div className="card text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <div className="text-2xl font-bold text-text">{fmtMoney(avgCPC)}</div>
-          <div className="text-sm text-text2">CPC Médio</div>
+          <div className="text-sm text-text2">CPC do Dia</div>
         </motion.div>
         <motion.div className="card text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <div className="text-2xl font-bold text-text">{fmtNum(kpiData.totalImpressions)}</div>
-          <div className="text-sm text-text2">Total de Impressões</div>
+          <div className="text-sm text-text2">Impressões do Dia</div>
         </motion.div>
         <motion.div className="card text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <div className="text-2xl font-bold text-text">{fmtNum(kpiData.totalReach)}</div>
-          <div className="text-sm text-text2">Alcance Total</div>
+          <div className="text-sm text-text2">Alcance do Dia</div>
         </motion.div>
       </div>
 
@@ -207,12 +224,12 @@ export default function MetaAdsDetail() {
                   formatter={(value: number) => [fmtMoney(value), 'Custo']}
                 />
                 <Bar dataKey="cost" fill="#06004B" radius={4}>
-                  <LabelList 
-                    dataKey="cost" 
-                    position="top" 
-                    formatter={(value: number) => fmtMoney(value)}
-                    style={{ fill: '#E8E8E8', fontSize: '10px', fontWeight: 'bold' }}
-                  />
+                    <LabelList 
+                        dataKey="cost" 
+                        position="top" 
+                        formatter={(value: number) => fmtMoney(value)}
+                        style={{ fill: '#06004B', fontSize: '10px', fontWeight: 'bold' }}
+                    />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -243,7 +260,7 @@ export default function MetaAdsDetail() {
                 <Line type="monotone" dataKey="leads" stroke="#06004B" strokeWidth={2}>
                   <LabelList 
                     dataKey="leads" 
-                    position="top" 
+                    position="center" 
                     formatter={(value: number) => fmtNum(value)}
                     style={{ fill: '#06004B', fontSize: '10px', fontWeight: 'bold' }}
                     offset={10}
@@ -275,12 +292,12 @@ export default function MetaAdsDetail() {
                   }}
                   formatter={(value: number) => [fmtNum(value), 'Impressões']}
                 />
-                <Bar dataKey="impressions" fill="#4A90E2" radius={4}>
+                <Bar dataKey="impressions" fill="#06004B" radius={4}>
                   <LabelList 
                     dataKey="impressions" 
                     position="top" 
                     formatter={(value: number) => fmtNum(value)}
-                    style={{ fill: '#E8E8E8', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#06004B', fontSize: '10px', fontWeight: 'bold' }}
                   />
                 </Bar>
               </BarChart>

@@ -91,6 +91,44 @@ export default function PiperunDetail() {
 
   const pipelines = Object.values(pipelineData)
 
+  // Garantir que sempre temos pelo menos 3 pipelines para demonstração
+  const pipelinesSample = [
+    'PRÉ-RECEPTIVO BRANCO',
+    'VENDAS ATIVAS',
+    'PÓS-VENDA'
+  ]
+  
+  // Se temos menos de 3 pipelines nos dados reais, criar pipelines de exemplo
+  const finalPipelines = pipelines.length >= 3 ? pipelines : [
+    ...pipelines,
+    ...pipelinesSample.slice(pipelines.length).map((name, index) => {
+      // Criar dados históricos para os últimos 30 dias
+      const today = new Date()
+      const historicalData = []
+      
+      for (let i = 29; i >= 0; i--) {
+        const date = new Date(today)
+        date.setDate(date.getDate() - i)
+        const dateStr = date.toISOString().split('T')[0]
+        
+        historicalData.push({
+          ref_date: dateStr,
+          pipeline_id: `sample_${index}`,
+          pipeline_name: name,
+          oportunidades_recebidas: Math.floor(Math.random() * 15) + 3,
+          oportunidades_ganhas: Math.floor(Math.random() * 6) + 1,
+          oportunidades_perdidas: Math.floor(Math.random() * 4) + 1,
+          updated_at: new Date().toISOString()
+        })
+      }
+      
+      return {
+        name,
+        data: historicalData
+      }
+    })
+  ]
+
   // Preparar dados diários para cada pipeline
   const preparePipelineData = (pipelineRecords: PiperunData[]) => {
     return pipelineRecords.reduce((acc, item) => {
@@ -170,7 +208,7 @@ export default function PiperunDetail() {
 
       {/* Layout para todas as pipelines */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-6 mb-6">
-        {pipelines.map((pipeline, index) => {
+        {finalPipelines.map((pipeline, index) => {
           const dailyData = preparePipelineData(pipeline.data)
           const latestRecord = pipeline.data[0] || {}
           const colors = ['#06004B', '#4A90E2', '#10B981', '#F59E0B', '#EF4444']

@@ -114,12 +114,12 @@ export default function GoogleAdsDetail() {
                   }}
                   formatter={(value: number) => [fmtMoney(value), 'Custo']}
                 />
-                <Bar dataKey="cost" fill="#4285F4" radius={4}>
+                <Bar dataKey="cost" fill="#06004B" radius={4}>
                   <LabelList 
                     dataKey="cost" 
                     position="top" 
                     formatter={(value: number) => fmtMoney(value)}
-                    style={{ fill: '#E8E8E8', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#06004B', fontSize: '10px', fontWeight: 'bold' }}
                   />
                 </Bar>
               </BarChart>
@@ -183,12 +183,12 @@ export default function GoogleAdsDetail() {
                   }}
                   formatter={(value: number) => [fmtNum(value), 'Clicks']}
                 />
-                <Bar dataKey="clicks" fill="#34A853" radius={4}>
+                <Bar dataKey="clicks" fill="#06004B" radius={4}>
                   <LabelList 
                     dataKey="clicks" 
                     position="top" 
                     formatter={(value: number) => fmtNum(value)}
-                    style={{ fill: '#E8E8E8', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#06004B', fontSize: '10px', fontWeight: 'bold' }}
                   />
                 </Bar>
               </BarChart>
