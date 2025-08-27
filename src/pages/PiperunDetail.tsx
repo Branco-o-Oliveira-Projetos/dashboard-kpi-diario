@@ -23,7 +23,7 @@ export default function PiperunDetail() {
   })
 
   if (isLoading) return (
-    <div className="max-w-[2000px] mx-auto p-4">
+    <div className="min-h-screen w-full mx-auto px-4 py-6 max-w-full">
       <div className="mb-6">
         <motion.div 
           className="h-8 bg-bg2 rounded-lg mb-2"
@@ -36,7 +36,7 @@ export default function PiperunDetail() {
           transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
         />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
         {[...Array(3)].map((_, i) => (
           <motion.div
             key={i}
@@ -114,7 +114,7 @@ export default function PiperunDetail() {
   }
 
   return (
-    <div className="max-w-[2000px] mx-auto p-4">
+    <div className="min-h-screen w-full mx-auto px-4 py-6 max-w-full">
       {/* Header */}
       <motion.div 
         className="mb-6"
@@ -129,19 +129,6 @@ export default function PiperunDetail() {
           transition={{ duration: 0.6, delay: 0.2 }}
         >
           PipeRun - Detalhes
-          <motion.div
-            className="w-3 h-3 bg-green-500 rounded-full"
-            animate={{ 
-              scale: [1, 1.2, 1],
-              opacity: [1, 0.8, 1] 
-            }}
-            transition={{ 
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-            title="Dados atualizando em tempo real"
-          />
         </motion.h1>
         <motion.p 
           className="text-text2"
@@ -180,8 +167,8 @@ export default function PiperunDetail() {
         </motion.div>
       </motion.div>
 
-      {/* Layout para todas as pipelines */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-6 mb-6">
+      {/* Layout responsivo para as pipelines */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6">
         {pipelines.map((pipeline, index) => {
           const dailyData = preparePipelineData(pipeline.data)
           const latestRecord = pipeline.data[0] || {}
@@ -191,7 +178,7 @@ export default function PiperunDetail() {
           return (
             <motion.div 
               key={pipeline.name} 
-              className="card" 
+              className="card w-full min-h-0 flex flex-col" 
               initial={{ opacity: 0, y: 30, scale: 0.95 }} 
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ 
@@ -208,7 +195,7 @@ export default function PiperunDetail() {
               whileTap={{ scale: 0.98 }}
             >
               <motion.h2 
-                className="text-xl font-bold text-text mb-4 text-center"
+                className="text-lg sm:text-xl font-bold text-text mb-3 sm:mb-4 text-center"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: index * 0.1 + 0.2 }}
@@ -218,18 +205,18 @@ export default function PiperunDetail() {
 
               {/* KPIs do Pipeline */}
               <motion.div 
-                className="grid grid-cols-3 gap-2 mb-4"
+                className="grid grid-cols-3 gap-1 sm:gap-2 mb-3 sm:mb-4"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 + 0.3 }}
               >
                 <motion.div 
-                  className="text-center p-2 bg-bg2 rounded-lg"
+                  className="text-center p-1 sm:p-2 bg-bg2 rounded-lg"
                   whileHover={{ scale: 1.05 }}
                   transition={{ type: "spring", stiffness: 300 }}
                 >
                   <motion.div 
-                    className="text-lg font-bold text-text"
+                    className="text-sm sm:text-lg font-bold text-text"
                     initial={{ opacity: 0, scale: 0 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ 
@@ -244,12 +231,12 @@ export default function PiperunDetail() {
                   <div className="text-xs text-text2">Recebidas</div>
                 </motion.div>
                 <motion.div 
-                  className="text-center p-2 bg-bg2 rounded-lg"
+                  className="text-center p-1 sm:p-2 bg-bg2 rounded-lg"
                   whileHover={{ scale: 1.05 }}
                   transition={{ type: "spring", stiffness: 300 }}
                 >
                   <motion.div 
-                    className="text-lg font-bold text-green-400"
+                    className="text-sm sm:text-lg font-bold text-green-400"
                     initial={{ opacity: 0, scale: 0 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ 
@@ -264,12 +251,12 @@ export default function PiperunDetail() {
                   <div className="text-xs text-text2">Ganhas</div>
                 </motion.div>
                 <motion.div 
-                  className="text-center p-2 bg-bg2 rounded-lg"
+                  className="text-center p-1 sm:p-2 bg-bg2 rounded-lg"
                   whileHover={{ scale: 1.05 }}
                   transition={{ type: "spring", stiffness: 300 }}
                 >
                   <motion.div 
-                    className="text-lg font-bold text-red-400"
+                    className="text-sm sm:text-lg font-bold text-red-400"
                     initial={{ opacity: 0, scale: 0 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ 
@@ -292,9 +279,9 @@ export default function PiperunDetail() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 + 0.7 }}
               >
-                <h4 className="text-sm font-semibold text-text2 mb-2">Oportunidades Recebidas</h4>
+                <h4 className="text-xs sm:text-sm font-semibold text-text2 mb-2">Oportunidades Recebidas</h4>
                 <motion.div 
-                  className="h-32"
+                  className="h-24 sm:h-28 lg:h-32"
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.2 }}
                 >
@@ -328,9 +315,9 @@ export default function PiperunDetail() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 + 0.8 }}
               >
-                <h4 className="text-sm font-semibold text-text2 mb-2">Ganhas vs Perdidas</h4>
+                <h4 className="text-xs sm:text-sm font-semibold text-text2 mb-2">Ganhas vs Perdidas</h4>
                 <motion.div 
-                  className="h-32"
+                  className="h-24 sm:h-28 lg:h-32"
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.2 }}
                 >
@@ -367,9 +354,9 @@ export default function PiperunDetail() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 + 0.9 }}
               >
-                <h4 className="text-sm font-semibold text-text2 mb-2">Taxa de Conversão (%)</h4>
+                <h4 className="text-xs sm:text-sm font-semibold text-text2 mb-2">Taxa de Conversão (%)</h4>
                 <motion.div 
-                  className="h-32"
+                  className="h-24 sm:h-28 lg:h-32"
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.2 }}
                 >
