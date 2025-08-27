@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
 import { fetchDetailedData } from '../lib/api'
 import { fmtNum } from '../lib/format'
 import { Link } from 'react-router-dom'
@@ -22,7 +22,57 @@ export default function PiperunDetail() {
     refetchInterval: 2 * 60 * 1000, // 2 minutos
   })
 
-  if (isLoading) return <div className="p-8">Carregando...</div>
+  if (isLoading) return (
+    <div className="max-w-[2000px] mx-auto p-4">
+      <div className="mb-6">
+        <motion.div 
+          className="h-8 bg-bg2 rounded-lg mb-2"
+          animate={{ opacity: [0.5, 1, 0.5] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+        />
+        <motion.div 
+          className="h-4 bg-bg2 rounded-lg w-1/2"
+          animate={{ opacity: [0.5, 1, 0.5] }}
+          transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
+        />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-6">
+        {[...Array(3)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="card"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+          >
+            <motion.div 
+              className="h-6 bg-bg2 rounded-lg mb-4"
+              animate={{ opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.3 }}
+            />
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              {[...Array(3)].map((_, j) => (
+                <motion.div 
+                  key={j}
+                  className="h-16 bg-bg2 rounded-lg"
+                  animate={{ opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 1.5, repeat: Infinity, delay: (i * 0.3) + (j * 0.1) }}
+                />
+              ))}
+            </div>
+            {[...Array(3)].map((_, j) => (
+              <motion.div 
+                key={j}
+                className="h-32 bg-bg2 rounded-lg mb-4"
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 1.5, repeat: Infinity, delay: (i * 0.3) + (j * 0.2) }}
+              />
+            ))}
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  )
   if (error) return <div className="p-8 text-red-500">Erro ao carregar dados</div>
 
   const records: PiperunData[] = data || []
@@ -64,89 +114,229 @@ export default function PiperunDetail() {
   }
 
   return (
-    <div className="max-w-[1600px] mx-auto p-4">
+    <div className="max-w-[2000px] mx-auto p-4">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-text mb-2">PipeRun - Detalhes</h1>
-        <p className="text-text2">Análise detalhada das oportunidades por pipeline</p>
-        <Link to="/" className="text-blue-400 hover:underline mt-2 inline-block">← Voltar ao Dashboard</Link>
-      </div>
+      <motion.div 
+        className="mb-6"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <motion.h1 
+          className="text-3xl font-bold text-text mb-2 flex items-center gap-3"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          PipeRun - Detalhes
+          <motion.div
+            className="w-3 h-3 bg-green-500 rounded-full"
+            animate={{ 
+              scale: [1, 1.2, 1],
+              opacity: [1, 0.8, 1] 
+            }}
+            transition={{ 
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            title="Dados atualizando em tempo real"
+          />
+        </motion.h1>
+        <motion.p 
+          className="text-text2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          Análise detalhada das oportunidades por pipeline
+        </motion.p>
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <Link to="/" className="text-blue-400 hover:underline mt-2 inline-block group">
+            <motion.span
+              className="inline-flex items-center"
+              whileHover={{ x: -5 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              ← Voltar ao Dashboard
+            </motion.span>
+          </Link>
+        </motion.div>
+      </motion.div>
 
-      {/* Layout 1x3 para os 3 pipelines */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      {/* Layout para todas as pipelines */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-6 mb-6">
         {pipelines.map((pipeline, index) => {
           const dailyData = preparePipelineData(pipeline.data)
           const latestRecord = pipeline.data[0] || {}
-          const colors = ['#06004B', '#4A90E2', '#10B981']
+          const colors = ['#06004B', '#4A90E2', '#10B981', '#F59E0B', '#EF4444']
           const color = colors[index % colors.length]
 
           return (
             <motion.div 
               key={pipeline.name} 
               className="card" 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }}
+              initial={{ opacity: 0, y: 30, scale: 0.95 }} 
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ 
+                duration: 0.6, 
+                delay: index * 0.1,
+                type: "spring",
+                stiffness: 100 
+              }}
+              whileHover={{ 
+                y: -5, 
+                scale: 1.02,
+                transition: { duration: 0.2 } 
+              }}
+              whileTap={{ scale: 0.98 }}
             >
-              <h2 className="text-xl font-bold text-text mb-4 text-center">
+              <motion.h2 
+                className="text-xl font-bold text-text mb-4 text-center"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: index * 0.1 + 0.2 }}
+              >
                 {pipeline.name}
-              </h2>
+              </motion.h2>
 
               {/* KPIs do Pipeline */}
-              <div className="grid grid-cols-3 gap-2 mb-4">
-                <div className="text-center p-2 bg-bg2 rounded-lg">
-                  <div className="text-lg font-bold text-text">
+              <motion.div 
+                className="grid grid-cols-3 gap-2 mb-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 + 0.3 }}
+              >
+                <motion.div 
+                  className="text-center p-2 bg-bg2 rounded-lg"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <motion.div 
+                    className="text-lg font-bold text-text"
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ 
+                      duration: 0.6, 
+                      delay: index * 0.1 + 0.4,
+                      type: "spring",
+                      stiffness: 200 
+                    }}
+                  >
                     {fmtNum(latestRecord.oportunidades_recebidas)}
-                  </div>
+                  </motion.div>
                   <div className="text-xs text-text2">Recebidas</div>
-                </div>
-                <div className="text-center p-2 bg-bg2 rounded-lg">
-                  <div className="text-lg font-bold text-green-400">
+                </motion.div>
+                <motion.div 
+                  className="text-center p-2 bg-bg2 rounded-lg"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <motion.div 
+                    className="text-lg font-bold text-green-400"
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ 
+                      duration: 0.6, 
+                      delay: index * 0.1 + 0.5,
+                      type: "spring",
+                      stiffness: 200 
+                    }}
+                  >
                     {fmtNum(latestRecord.oportunidades_ganhas)}
-                  </div>
+                  </motion.div>
                   <div className="text-xs text-text2">Ganhas</div>
-                </div>
-                <div className="text-center p-2 bg-bg2 rounded-lg">
-                  <div className="text-lg font-bold text-red-400">
+                </motion.div>
+                <motion.div 
+                  className="text-center p-2 bg-bg2 rounded-lg"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <motion.div 
+                    className="text-lg font-bold text-red-400"
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ 
+                      duration: 0.6, 
+                      delay: index * 0.1 + 0.6,
+                      type: "spring",
+                      stiffness: 200 
+                    }}
+                  >
                     {fmtNum(latestRecord.oportunidades_perdidas)}
-                  </div>
+                  </motion.div>
                   <div className="text-xs text-text2">Perdidas</div>
-                </div>
-              </div>
+                </motion.div>
+              </motion.div>
 
               {/* Gráfico de Oportunidades Recebidas */}
-              <div className="mb-4">
+              <motion.div 
+                className="mb-4"
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 + 0.7 }}
+              >
                 <h4 className="text-sm font-semibold text-text2 mb-2">Oportunidades Recebidas</h4>
-                <div className="h-32">
+                <motion.div 
+                  className="h-32"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.2 }}
+                >
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={dailyData}>
                       <XAxis 
                         dataKey="date" 
-                        tickFormatter={(value) => new Date(value).getDate().toString()}
+                        tickFormatter={(value) => {
+                          const date = new Date(value + 'T00:00:00')
+                          return date.getDate().toString()
+                        }}
                         fontSize={10}
                       />
                       <Tooltip 
-                        labelFormatter={(value) => new Date(value).toLocaleDateString('pt-BR')}
+                        labelFormatter={(value) => {
+                          const date = new Date(value + 'T00:00:00')
+                          return date.toLocaleDateString('pt-BR')
+                        }}
                         formatter={(value: number) => [fmtNum(value), 'Recebidas']}
                       />
                       <Bar dataKey="recebidas" fill={color} radius={2} />
                     </BarChart>
                   </ResponsiveContainer>
-                </div>
-              </div>
+                </motion.div>
+              </motion.div>
 
               {/* Gráfico de Ganhas vs Perdidas */}
-              <div className="mb-4">
+              <motion.div 
+                className="mb-4"
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 + 0.8 }}
+              >
                 <h4 className="text-sm font-semibold text-text2 mb-2">Ganhas vs Perdidas</h4>
-                <div className="h-32">
+                <motion.div 
+                  className="h-32"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.2 }}
+                >
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={dailyData}>
                       <XAxis 
                         dataKey="date" 
-                        tickFormatter={(value) => new Date(value).getDate().toString()}
+                        tickFormatter={(value) => {
+                          const date = new Date(value + 'T00:00:00')
+                          return date.getDate().toString()
+                        }}
                         fontSize={10}
                       />
                       <Tooltip 
-                        labelFormatter={(value) => new Date(value).toLocaleDateString('pt-BR')}
+                        labelFormatter={(value) => {
+                          const date = new Date(value + 'T00:00:00')
+                          return date.toLocaleDateString('pt-BR')
+                        }}
                         formatter={(value: number, name: string) => [
                           fmtNum(value), 
                           name === 'ganhas' ? 'Ganhas' : 'Perdidas'
@@ -156,13 +346,21 @@ export default function PiperunDetail() {
                       <Line type="monotone" dataKey="perdidas" stroke="#EF4444" strokeWidth={2} name="perdidas" />
                     </LineChart>
                   </ResponsiveContainer>
-                </div>
-              </div>
+                </motion.div>
+              </motion.div>
 
               {/* Taxa de Conversão */}
-              <div>
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 + 0.9 }}
+              >
                 <h4 className="text-sm font-semibold text-text2 mb-2">Taxa de Conversão (%)</h4>
-                <div className="h-32">
+                <motion.div 
+                  className="h-32"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.2 }}
+                >
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={dailyData.map(item => ({
                       ...item,
@@ -170,29 +368,62 @@ export default function PiperunDetail() {
                     }))}>
                       <XAxis 
                         dataKey="date" 
-                        tickFormatter={(value) => new Date(value).getDate().toString()}
+                        tickFormatter={(value) => {
+                          const date = new Date(value + 'T00:00:00')
+                          return date.getDate().toString()
+                        }}
                         fontSize={10}
                       />
                       <Tooltip 
-                        labelFormatter={(value) => new Date(value).toLocaleDateString('pt-BR')}
+                        labelFormatter={(value) => {
+                          const date = new Date(value + 'T00:00:00')
+                          return date.toLocaleDateString('pt-BR')
+                        }}
                         formatter={(value: number) => [`${value.toFixed(1)}%`, 'Taxa de Conversão']}
                       />
                       <Line type="monotone" dataKey="taxa" stroke="#8B5CF6" strokeWidth={2} />
                     </LineChart>
                   </ResponsiveContainer>
-                </div>
-              </div>
+                </motion.div>
+              </motion.div>
             </motion.div>
           )
         })}
       </div>
 
       {/* Tabela Consolidada */}
-      <motion.div className="card" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <h3 className="card-title">Registros Recentes - Todos os Pipelines</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
+      <motion.div 
+        className="card" 
+        initial={{ opacity: 0, y: 50 }} 
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.8 }}
+        whileHover={{ y: -2 }}
+      >
+        <motion.h3 
+          className="card-title"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 1 }}
+        >
+          Registros Recentes - Todos os Pipelines
+        </motion.h3>
+        <motion.div 
+          className="overflow-x-auto"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 1.2 }}
+        >
+          <motion.table 
+            className="w-full text-sm"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 1.3 }}
+          >
+            <motion.thead
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4, delay: 1.4 }}
+            >
               <tr className="border-b border-bg2">
                 <th className="text-left p-2">Data</th>
                 <th className="text-left p-2">Pipeline</th>
@@ -202,14 +433,24 @@ export default function PiperunDetail() {
                 <th className="text-right p-2">Taxa Conversão</th>
                 <th className="text-right p-2">Última Atualização</th>
               </tr>
-            </thead>
+            </motion.thead>
             <tbody>
               {records.slice(0, 20).map((record, idx) => {
                 const taxa = record.oportunidades_recebidas > 0 ? 
                   (record.oportunidades_ganhas / record.oportunidades_recebidas * 100) : 0
                 return (
-                  <tr key={idx} className="border-b border-bg2/50 hover:bg-bg2/20">
-                    <td className="p-2">{new Date(record.ref_date).toLocaleDateString('pt-BR')}</td>
+                  <motion.tr 
+                    key={idx} 
+                    className="border-b border-bg2/50 hover:bg-bg2/20"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: idx * 0.05 + 1.5 }}
+                    whileHover={{ 
+                      backgroundColor: "rgba(255, 255, 255, 0.05)",
+                      transition: { duration: 0.2 }
+                    }}
+                  >
+                    <td className="p-2">{new Date(record.ref_date + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
                     <td className="p-2 truncate max-w-[200px]" title={record.pipeline_name}>
                       {record.pipeline_name}
                     </td>
@@ -220,12 +461,12 @@ export default function PiperunDetail() {
                     <td className="p-2 text-right text-text2">
                       {new Date(record.updated_at).toLocaleString('pt-BR')}
                     </td>
-                  </tr>
+                  </motion.tr>
                 )
               })}
             </tbody>
-          </table>
-        </div>
+          </motion.table>
+        </motion.div>
       </motion.div>
     </div>
   )

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, LabelList } from 'recharts'
 import { fetchDetailedData } from '../lib/api'
 import { fmtNum } from '../lib/format'
 import { Link } from 'react-router-dom'
@@ -215,13 +215,28 @@ export default function N8nDetail() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dailyData}>
-                <XAxis dataKey="date" tickFormatter={(value) => new Date(value).getDate().toString()} />
+                <XAxis 
+                  dataKey="date" 
+                  tickFormatter={(value) => {
+                    const date = new Date(value + 'T00:00:00')
+                    return date.getDate().toString()
+                  }} 
+                />
                 <YAxis />
                 <Tooltip 
-                  labelFormatter={(value) => new Date(value).toLocaleDateString('pt-BR')}
+                  labelFormatter={(value) => {
+                    const date = new Date(value + 'T00:00:00')
+                    return date.toLocaleDateString('pt-BR')
+                  }}
                   formatter={(value: number) => [fmtNum(value), 'Fluxos']}
                 />
                 <Bar dataKey="flows_total" fill="#06004B" radius={4}>
+                  <LabelList 
+                    dataKey="flows_total" 
+                    position="top" 
+                    formatter={(value: number) => fmtNum(value)}
+                    style={{ fill: '#E8E8E8', fontSize: '12px', fontWeight: 'bold' }}
+                  />
                   <motion.g
                     animate={{
                       opacity: [0.8, 1, 0.8]
@@ -249,10 +264,19 @@ export default function N8nDetail() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={dailyData}>
-                <XAxis dataKey="date" tickFormatter={(value) => new Date(value).getDate().toString()} />
+                <XAxis 
+                  dataKey="date" 
+                  tickFormatter={(value) => {
+                    const date = new Date(value + 'T00:00:00')
+                    return date.getDate().toString()
+                  }} 
+                />
                 <YAxis />
                 <Tooltip 
-                  labelFormatter={(value) => new Date(value).toLocaleDateString('pt-BR')}
+                  labelFormatter={(value) => {
+                    const date = new Date(value + 'T00:00:00')
+                    return date.toLocaleDateString('pt-BR')
+                  }}
                   formatter={(value: number, name: string) => [
                     fmtNum(value), 
                     name === 'runs_success' ? 'Sucesso' : 'Falhas'
@@ -265,7 +289,15 @@ export default function N8nDetail() {
                   strokeWidth={3} 
                   name="runs_success"
                   dot={{ fill: '#10B981', strokeWidth: 2, r: 4 }}
-                />
+                >
+                  <LabelList 
+                    dataKey="runs_success" 
+                    position="top" 
+                    formatter={(value: number) => fmtNum(value)}
+                    style={{ fill: '#10B981', fontSize: '10px', fontWeight: 'bold' }}
+                    offset={10}
+                  />
+                </Line>
                 <Line 
                   type="monotone" 
                   dataKey="runs_failed" 
@@ -273,7 +305,15 @@ export default function N8nDetail() {
                   strokeWidth={3} 
                   name="runs_failed"
                   dot={{ fill: '#EF4444', strokeWidth: 2, r: 4 }}
-                />
+                >
+                  <LabelList 
+                    dataKey="runs_failed" 
+                    position="bottom" 
+                    formatter={(value: number) => fmtNum(value)}
+                    style={{ fill: '#EF4444', fontSize: '10px', fontWeight: 'bold' }}
+                    offset={10}
+                  />
+                </Line>
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -285,13 +325,30 @@ export default function N8nDetail() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={dailyData}>
-                <XAxis dataKey="date" tickFormatter={(value) => new Date(value).getDate().toString()} />
+                <XAxis 
+                  dataKey="date" 
+                  tickFormatter={(value) => {
+                    const date = new Date(value + 'T00:00:00')
+                    return date.getDate().toString()
+                  }} 
+                />
                 <YAxis domain={[0, 100]} />
                 <Tooltip 
-                  labelFormatter={(value) => new Date(value).toLocaleDateString('pt-BR')}
+                  labelFormatter={(value) => {
+                    const date = new Date(value + 'T00:00:00')
+                    return date.toLocaleDateString('pt-BR')
+                  }}
                   formatter={(value: number) => [`${value.toFixed(1)}%`, 'Taxa de Sucesso']}
                 />
-                <Line type="monotone" dataKey="success_rate" stroke="#8B5CF6" strokeWidth={2} />
+                <Line type="monotone" dataKey="success_rate" stroke="#8B5CF6" strokeWidth={2}>
+                  <LabelList 
+                    dataKey="success_rate" 
+                    position="top" 
+                    formatter={(value: number) => `${value.toFixed(1)}%`}
+                    style={{ fill: '#8B5CF6', fontSize: '10px', fontWeight: 'bold' }}
+                    offset={10}
+                  />
+                </Line>
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -303,13 +360,29 @@ export default function N8nDetail() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dailyData}>
-                <XAxis dataKey="date" tickFormatter={(value) => new Date(value).getDate().toString()} />
+                <XAxis 
+                  dataKey="date" 
+                  tickFormatter={(value) => {
+                    const date = new Date(value + 'T00:00:00')
+                    return date.getDate().toString()
+                  }} 
+                />
                 <YAxis />
                 <Tooltip 
-                  labelFormatter={(value) => new Date(value).toLocaleDateString('pt-BR')}
+                  labelFormatter={(value) => {
+                    const date = new Date(value + 'T00:00:00')
+                    return date.toLocaleDateString('pt-BR')
+                  }}
                   formatter={(value: number) => [`${value.toFixed(1)}s`, 'Duração Média']}
                 />
-                <Bar dataKey="avg_duration_sec" fill="#F59E0B" radius={4} />
+                <Bar dataKey="avg_duration_sec" fill="#F59E0B" radius={4}>
+                  <LabelList 
+                    dataKey="avg_duration_sec" 
+                    position="top" 
+                    formatter={(value: number) => `${value.toFixed(1)}s`}
+                    style={{ fill: '#E8E8E8', fontSize: '12px', fontWeight: 'bold' }}
+                  />
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>

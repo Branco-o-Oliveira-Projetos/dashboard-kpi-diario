@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, LabelList } from 'recharts'
 import { fetchDetailedData } from '../lib/api'
 import { fmtNum, fmtMoney } from '../lib/format'
 import { Link } from 'react-router-dom'
@@ -54,7 +54,9 @@ export default function GoogleAdsDetail() {
       })
     }
     return acc
-  }, [] as any[]).slice(0, 30) // Últimos 30 dias
+  }, [] as any[])
+    .slice(0, 30) // Últimos 30 dias
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) // Ordem crescente
 
   return (
     <div className="max-w-[1400px] mx-auto p-4">
@@ -97,13 +99,29 @@ export default function GoogleAdsDetail() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dailyData}>
-                <XAxis dataKey="date" tickFormatter={(value) => new Date(value).getDate().toString()} />
+                <XAxis 
+                  dataKey="date" 
+                  tickFormatter={(value) => {
+                    const date = new Date(value + 'T00:00:00')
+                    return date.getDate().toString()
+                  }} 
+                />
                 <YAxis />
                 <Tooltip 
-                  labelFormatter={(value) => new Date(value).toLocaleDateString('pt-BR')}
+                  labelFormatter={(value) => {
+                    const date = new Date(value + 'T00:00:00')
+                    return date.toLocaleDateString('pt-BR')
+                  }}
                   formatter={(value: number) => [fmtMoney(value), 'Custo']}
                 />
-                <Bar dataKey="cost" fill="#4285F4" radius={4} />
+                <Bar dataKey="cost" fill="#4285F4" radius={4}>
+                  <LabelList 
+                    dataKey="cost" 
+                    position="top" 
+                    formatter={(value: number) => fmtMoney(value)}
+                    style={{ fill: '#E8E8E8', fontSize: '10px', fontWeight: 'bold' }}
+                  />
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -115,13 +133,30 @@ export default function GoogleAdsDetail() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={dailyData}>
-                <XAxis dataKey="date" tickFormatter={(value) => new Date(value).getDate().toString()} />
+                <XAxis 
+                  dataKey="date" 
+                  tickFormatter={(value) => {
+                    const date = new Date(value + 'T00:00:00')
+                    return date.getDate().toString()
+                  }} 
+                />
                 <YAxis />
                 <Tooltip 
-                  labelFormatter={(value) => new Date(value).toLocaleDateString('pt-BR')}
+                  labelFormatter={(value) => {
+                    const date = new Date(value + 'T00:00:00')
+                    return date.toLocaleDateString('pt-BR')
+                  }}
                   formatter={(value: number) => [fmtNum(value), 'Leads']}
                 />
-                <Line type="monotone" dataKey="leads" stroke="#4285F4" strokeWidth={2} />
+                <Line type="monotone" dataKey="leads" stroke="#4285F4" strokeWidth={2}>
+                  <LabelList 
+                    dataKey="leads" 
+                    position="top" 
+                    formatter={(value: number) => fmtNum(value)}
+                    style={{ fill: '#4285F4', fontSize: '10px', fontWeight: 'bold' }}
+                    offset={10}
+                  />
+                </Line>
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -133,13 +168,29 @@ export default function GoogleAdsDetail() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dailyData}>
-                <XAxis dataKey="date" tickFormatter={(value) => new Date(value).getDate().toString()} />
+                <XAxis 
+                  dataKey="date" 
+                  tickFormatter={(value) => {
+                    const date = new Date(value + 'T00:00:00')
+                    return date.getDate().toString()
+                  }} 
+                />
                 <YAxis />
                 <Tooltip 
-                  labelFormatter={(value) => new Date(value).toLocaleDateString('pt-BR')}
+                  labelFormatter={(value) => {
+                    const date = new Date(value + 'T00:00:00')
+                    return date.toLocaleDateString('pt-BR')
+                  }}
                   formatter={(value: number) => [fmtNum(value), 'Clicks']}
                 />
-                <Bar dataKey="clicks" fill="#34A853" radius={4} />
+                <Bar dataKey="clicks" fill="#34A853" radius={4}>
+                  <LabelList 
+                    dataKey="clicks" 
+                    position="top" 
+                    formatter={(value: number) => fmtNum(value)}
+                    style={{ fill: '#E8E8E8', fontSize: '10px', fontWeight: 'bold' }}
+                  />
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -151,13 +202,30 @@ export default function GoogleAdsDetail() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={dailyData}>
-                <XAxis dataKey="date" tickFormatter={(value) => new Date(value).getDate().toString()} />
+                <XAxis 
+                  dataKey="date" 
+                  tickFormatter={(value) => {
+                    const date = new Date(value + 'T00:00:00')
+                    return date.getDate().toString()
+                  }} 
+                />
                 <YAxis />
                 <Tooltip 
-                  labelFormatter={(value) => new Date(value).toLocaleDateString('pt-BR')}
+                  labelFormatter={(value) => {
+                    const date = new Date(value + 'T00:00:00')
+                    return date.toLocaleDateString('pt-BR')
+                  }}
                   formatter={(value: number) => [fmtNum(value), 'ROAS']}
                 />
-                <Line type="monotone" dataKey="roas" stroke="#EA4335" strokeWidth={2} />
+                <Line type="monotone" dataKey="roas" stroke="#EA4335" strokeWidth={2}>
+                  <LabelList 
+                    dataKey="roas" 
+                    position="top" 
+                    formatter={(value: number) => fmtNum(value)}
+                    style={{ fill: '#EA4335', fontSize: '10px', fontWeight: 'bold' }}
+                    offset={10}
+                  />
+                </Line>
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -185,7 +253,7 @@ export default function GoogleAdsDetail() {
             <tbody>
               {records.slice(0, 20).map((record, idx) => (
                 <tr key={idx} className="border-b border-bg2/50 hover:bg-bg2/20">
-                  <td className="p-2">{new Date(record.ref_date).toLocaleDateString('pt-BR')}</td>
+                  <td className="p-2">{new Date(record.ref_date + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
                   <td className="p-2 truncate max-w-[150px]" title={record.account_name}>
                     {record.account_name}
                   </td>
