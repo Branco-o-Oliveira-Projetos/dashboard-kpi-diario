@@ -166,7 +166,7 @@ export default function PiperunDetail() {
             </motion.span>
           </Link>
           
-          <motion.div
+          {/* <motion.div
             className="mt-3 p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -176,7 +176,7 @@ export default function PiperunDetail() {
               <span className="text-purple-400">🎯 Exibindo pipelines:</span>
               <span className="text-text font-medium">78157, 78175, 78291</span>
             </div>
-          </motion.div>
+          </motion.div> */}
         </motion.div>
       </motion.div>
 

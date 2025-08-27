@@ -257,16 +257,16 @@ async def get_piperun_all_pipelines():
     
     with pool.connection() as conn:
         with conn.cursor() as cur:
-            # Consulta dados das 3 pipelines específicas
+            # Consulta dados das 3 pipelines específicas usando ANY
             detailed_query = """
                 SELECT *
                 FROM kpi_tv.piperun_daily
-                WHERE pipeline_id IN %s
+                WHERE pipeline_id = ANY(%s)
                 ORDER BY ref_date DESC, updated_at DESC
                 LIMIT 1000
             """
             
-            cur.execute(detailed_query, (tuple(pipeline_ids),))
+            cur.execute(detailed_query, (pipeline_ids,))
             rows = cur.fetchall()
             
             # Pega os nomes das colunas
