@@ -208,6 +208,48 @@ async def get_series(system: str):
     _, series = get_kpi_and_series(system)
     return series
 
+@app.get("/api/detailed/{system}")
+async def get_detailed_data(system: str):
+    """Retorna dados detalhados de um sistema específico"""
+    if system not in SISTEMAS_DB:
+        raise HTTPException(status_code=404, detail="Sistema não encontrado")
+    
+    config = SISTEMAS_DB[system]
+    schema = config['schema']
+    tabela = config['tabela']
+    filtro_col = config['filtro_col']
+    filtro_val = config['filtro_val']
+    
+    with pool.connection() as conn:
+        with conn.cursor() as cur:
+            # Consulta todos os dados dos últimos 30 dias
+            detailed_query = f"""
+                SELECT *
+                FROM {schema}.{tabela}
+                {"WHERE " + filtro_col + " = %s" if filtro_col else ""}
+                ORDER BY ref_date DESC, updated_at DESC
+                LIMIT 1000
+            """
+            
+            cur.execute(detailed_query, (filtro_val,) if filtro_col else ()
+            rows = cur.fetchall()
+            
+            # Pega os nomes das colunas
+            columns = [desc[0] for desc in cur.description]
+            
+            # Converte os resultados para lista de dicionários
+            detailed_data = []
+            for row in rows:
+                row_dict = {}
+                for i, value in enumerate(row):
+                    if isinstance(value, datetime):
+                        row_dict[columns[i]] = value.isoformat()
+                    else:
+                        row_dict[columns[i]] = value
+                detailed_data.append(row_dict)
+    
+    return detailed_data
+
 # Endpoint raiz para teste da API
 @app.get("/")
 async def root():

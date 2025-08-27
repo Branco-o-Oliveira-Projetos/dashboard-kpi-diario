@@ -68,3 +68,11 @@ export async function fetchSeries(system: SystemKey): Promise<SeriesResponse> {
     return generateMockSeries(system)
   }
 }
+
+export async function fetchDetailedData(system: string) {
+  const response = await fetch(`${API_BASE_URL}/api/detailed/${system}`)
+  if (!response.ok) {
+    throw new Error('Failed to fetch detailed data')
+  }
+  return response.json()
+}
