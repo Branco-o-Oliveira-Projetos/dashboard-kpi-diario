@@ -70,9 +70,15 @@ export async function fetchSeries(system: SystemKey): Promise<SeriesResponse> {
 }
 
 export async function fetchDetailedData(system: string) {
-  const response = await fetch(`${API_BASE_URL}/api/detailed/${system}`)
-  if (!response.ok) {
+  if (!apiBaseUrl) {
+    throw new Error('API Base URL not configured')
+  }
+  
+  try {
+    const response = await api.get(`/api/detailed/${system}`)
+    return response.data
+  } catch (error) {
+    console.error('Error fetching detailed data:', error)
     throw new Error('Failed to fetch detailed data')
   }
-  return response.json()
 }

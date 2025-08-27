@@ -3,12 +3,13 @@ import { useQuery } from '@tanstack/react-query'
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
 import { fetchKpis, fetchSeries } from '../lib/api'
 import { fmtNum, fmtMoney } from '../lib/format'
-import type { SystemKey } from '../types'
+import type { SystemKey, ChartType } from '../types'
 
 interface KpiCardProps {
   system: SystemKey
   title: string
   labels: string[]
+  chartType: ChartType
   autoRefreshMs: number | false
 }
 
@@ -27,6 +28,7 @@ export default function KpiCard({
   system,
   title,
   labels,
+  chartType,
   autoRefreshMs,
 }: KpiCardProps) {
   const kpisQ = useQuery({

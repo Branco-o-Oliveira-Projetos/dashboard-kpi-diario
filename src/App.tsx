@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import Logo from "https://s3.automacoesbeo.xyz/logos-empresas/Grupo_B_O.png";
 import StatusBar from "./components/StatusBar";
 import KpiCard from "./components/KpiCard";
 import { SYSTEM_ORDER, SYSTEMS } from "./lib/systems";
 import type { SystemKey } from "./types";
+
+// Logo da empresa
+const Logo = "https://s3.automacoesbeo.xyz/logos-empresas/Grupo_B_O.png";
 
 // Quantidade de cards por página do carrossel
 const CARDS_PER_PAGE = 4;
