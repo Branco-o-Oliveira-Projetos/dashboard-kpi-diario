@@ -77,8 +77,16 @@ export default function PiperunDetail() {
 
   const records: PiperunData[] = data || []
   
-  // Separar dados por pipeline
-  const pipelineData = records.reduce((acc, item) => {
+  // IDs específicos das pipelines que queremos exibir
+  const targetPipelineIds = ["78157", "78175", "78291"]
+  
+  // Filtrar apenas os registros das pipelines desejadas
+  const filteredRecords = records.filter(record => 
+    targetPipelineIds.includes(record.pipeline_id)
+  )
+  
+  // Separar dados por pipeline (apenas as 3 específicas)
+  const pipelineData = filteredRecords.reduce((acc, item) => {
     if (!acc[item.pipeline_id]) {
       acc[item.pipeline_id] = {
         name: item.pipeline_name,
@@ -89,45 +97,8 @@ export default function PiperunDetail() {
     return acc
   }, {} as Record<string, { name: string; data: PiperunData[] }>)
 
-  const pipelines = Object.values(pipelineData)
-
-  // Garantir que sempre temos pelo menos 3 pipelines para demonstração
-  const pipelinesSample = [
-    'PRÉ-RECEPTIVO BRANCO',
-    'VENDAS ATIVAS',
-    'PÓS-VENDA'
-  ]
-  
-  // Se temos menos de 3 pipelines nos dados reais, criar pipelines de exemplo
-  const finalPipelines = pipelines.length >= 3 ? pipelines : [
-    ...pipelines,
-    ...pipelinesSample.slice(pipelines.length).map((name, index) => {
-      // Criar dados históricos para os últimos 30 dias
-      const today = new Date()
-      const historicalData = []
-      
-      for (let i = 29; i >= 0; i--) {
-        const date = new Date(today)
-        date.setDate(date.getDate() - i)
-        const dateStr = date.toISOString().split('T')[0]
-        
-        historicalData.push({
-          ref_date: dateStr,
-          pipeline_id: `sample_${index}`,
-          pipeline_name: name,
-          oportunidades_recebidas: Math.floor(Math.random() * 15) + 3,
-          oportunidades_ganhas: Math.floor(Math.random() * 6) + 1,
-          oportunidades_perdidas: Math.floor(Math.random() * 4) + 1,
-          updated_at: new Date().toISOString()
-        })
-      }
-      
-      return {
-        name,
-        data: historicalData
-      }
-    })
-  ]
+  // Usar apenas as pipelines filtradas (as 3 específicas do banco)
+  const finalPipelines = Object.values(pipelineData)
 
   // Preparar dados diários para cada pipeline
   const preparePipelineData = (pipelineRecords: PiperunData[]) => {
@@ -203,6 +174,24 @@ export default function PiperunDetail() {
               ← Voltar ao Dashboard
             </motion.span>
           </Link>
+        </motion.div>
+        
+        {/* Indicador das pipelines filtradas */}
+        <motion.div
+          className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+        >
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-blue-400">🎯 Pipelines Filtradas:</span>
+            <span className="text-text font-medium">
+              {targetPipelineIds.join(", ")}
+            </span>
+          </div>
+          <div className="text-xs text-text2 mt-1">
+            Exibindo dados das {finalPipelines.length} pipelines específicas ({filteredRecords.length} registros)
+          </div>
         </motion.div>
       </motion.div>
 
@@ -443,7 +432,7 @@ export default function PiperunDetail() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 1 }}
         >
-          Registros Recentes - Todos os Pipelines
+          Registros Recentes - Pipelines Filtradas ({filteredRecords.length} registros)
         </motion.h3>
         <motion.div 
           className="overflow-x-auto"
@@ -473,7 +462,7 @@ export default function PiperunDetail() {
               </tr>
             </motion.thead>
             <tbody>
-              {records.slice(0, 20).map((record, idx) => {
+              {filteredRecords.slice(0, 20).map((record, idx) => {
                 const taxa = record.oportunidades_recebidas > 0 ? 
                   (record.oportunidades_ganhas / record.oportunidades_recebidas * 100) : 0
                 return (
