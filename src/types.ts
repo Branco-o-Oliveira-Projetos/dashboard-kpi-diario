@@ -9,6 +9,7 @@ export type SystemKey =
   | 'ti'
   | 'liderhub'
   | 'n8n'
+  | 'evolution'
 
 export type KpisResponse = {
   values: Array<number | null>

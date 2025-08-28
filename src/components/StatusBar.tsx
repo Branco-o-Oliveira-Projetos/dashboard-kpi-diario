@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 
 interface StatusBarProps {
@@ -26,27 +27,49 @@ export default function StatusBar({ cycle }: StatusBarProps) {
   })
 
   return (
-    <div className="bg-bg2 rounded-xl p-3 mb-4 flex items-center justify-between text-sm text-text2">
-      <span>Atualizado: {formattedTime}</span>
+    <motion.div 
+      className="bg-bg2 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 text-xs sm:text-sm text-text2"
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.span
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+      >
+        Atualizado: {formattedTime}
+      </motion.span>
       
       {/* Links para páginas detalhadas */}
-      <div className="flex items-center gap-4">
-        <nav className="flex items-center gap-3">
-          <Link to="/meta-ads" className="hover:text-text transition-colors">Meta Ads</Link>
-          <Link to="/google-ads" className="hover:text-text transition-colors">Google Ads</Link>
+      <motion.div 
+        className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto"
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <nav className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+          <Link to="/meta-ads" className="hover:text-text transition-colors whitespace-nowrap">Meta Ads</Link>
+          <Link to="/google-ads" className="hover:text-text transition-colors whitespace-nowrap">Google Ads</Link>
           <Link to="/piperun" className="hover:text-text transition-colors">PipeRun</Link>
-          <a href="#" className="hover:text-text transition-colors">Conta Azul</a>
-          <a href="#" className="hover:text-text transition-colors">CPJ-3C</a>
-          <a href="#" className="hover:text-text transition-colors">T.I</a>
-          <a href="#" className="hover:text-text transition-colors">Liderhub</a>
+          <a href="#" className="hover:text-text transition-colors hidden sm:inline">Conta Azul</a>
+          <a href="#" className="hover:text-text transition-colors hidden sm:inline">CPJ-3C</a>
+          <a href="#" className="hover:text-text transition-colors hidden lg:inline">T.I</a>
+          <a href="#" className="hover:text-text transition-colors hidden lg:inline">Liderhub</a>
           <Link to="/n8n" className="hover:text-text transition-colors">N8N</Link>
-          <a href="#" className="hover:text-text transition-colors">GitHub</a>
+          <a href="#" className="hover:text-text transition-colors hidden lg:inline">GitHub</a>
           <Link to="/evolution" className="hover:text-text transition-colors">Evolution</Link>
-          <a href="#" className="hover:text-text transition-colors">Portainer</a>
-          <a href="#" className="hover:text-text transition-colors">RH</a>
+          <a href="#" className="hover:text-text transition-colors hidden lg:inline">Portainer</a>
+          <a href="#" className="hover:text-text transition-colors hidden lg:inline">RH</a>
         </nav>
-        <span>| 🔄3 min • ciclo #{cycle}</span>
-      </div>
-    </div>
+        <motion.span 
+          className="whitespace-nowrap"
+          animate={{ opacity: [0.5, 1, 0.5] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          🔄 3 min • ciclo #{cycle}
+        </motion.span>
+      </motion.div>
+    </motion.div>
   )
 }

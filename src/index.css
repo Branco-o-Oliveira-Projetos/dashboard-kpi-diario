@@ -4,18 +4,42 @@
 
 @layer components {
   .card {
-    @apply bg-bg border border-gray-200 rounded-2xl p-4 shadow-sm;
+    @apply bg-bg border border-gray-200 rounded-2xl p-3 sm:p-4 lg:p-6 shadow-sm transition-all duration-300 hover:shadow-md;
   }
   
   .card-title {
-    @apply font-semibold text-lg text-text mb-3;
+    @apply font-semibold text-base sm:text-lg lg:text-xl text-text mb-3 sm:mb-4;
   }
   
   .chip {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-sm bg-bg2 text-text2;
+    @apply inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm bg-bg2 text-text2;
   }
   
   .status {
     @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border;
+  }
+
+  /* Responsividade para inputs e controles */
+  input[type="range"] {
+    @apply accent-primary transition-all duration-200;
+  }
+
+  input[type="checkbox"] {
+    @apply accent-primary scale-110 sm:scale-125;
+  }
+
+  /* Animações suaves para links e botões */
+  a, button {
+    @apply transition-all duration-200;
+  }
+
+  /* Scroll suave para a página */
+  html {
+    @apply scroll-smooth;
+  }
+
+  /* Container responsivo padrão */
+  .container-responsive {
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 }
