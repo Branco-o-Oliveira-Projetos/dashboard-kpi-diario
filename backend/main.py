@@ -32,188 +32,257 @@ SISTEMAS_DB = {
         'schema': 'kpi_tv',
         'tabela': 'piperun_daily',
         'filtro_col': 'pipeline_id',
-        'filtro_val': '78157',  # Dashboard principal usa apenas esta pipeline
+        'filtro_val': '78157',
+        'date_col': 'ref_date',
+        'updated_col': 'updated_at',
         'kpi_cols': ['oportunidades_recebidas', 'oportunidades_ganhas', 'oportunidades_perdidas'],
         'chart_col': 'oportunidades_recebidas',
+        'kpi_query_type': 'single_row',
+        'series_aggregation': 'SUM'
     },
     'n8n': {
         'schema': 'kpi_tv',
         'tabela': 'n8n_daily',
         'filtro_col': 'workspace_id',
         'filtro_val': 'HJDfVFxTb7w1KNDD',
+        'date_col': 'ref_date',
+        'updated_col': 'updated_at',
         'kpi_cols': ['flows_total', 'runs_success', 'runs_failed', 'avg_duration_sec'],
         'chart_col': 'runs_success',
+        'kpi_query_type': 'single_row',
+        'series_aggregation': 'SUM'
     },
     'conta_azul': {
         'schema': 'kpi_tv',
         'tabela': 'conta_azul_daily',
         'filtro_col': '',
         'filtro_val': '',
+        'date_col': 'ref_date',
+        'updated_col': 'updated_at',
         'kpi_cols': ['clientes_novos', 'a_receber_total', 'recebidas_total'],
         'chart_col': 'recebidas_total',
+        'kpi_query_type': 'single_row',
+        'series_aggregation': 'SUM'
     },
     'cpj3c': {
         'schema': 'kpi_tv',
         'tabela': 'cpj_daily',
         'filtro_col': '',
         'filtro_val': '',
+        'date_col': 'ref_date',
+        'updated_col': 'updated_at',
         'kpi_cols': ['audiencias', 'pericias', 'processos'],
         'chart_col': 'audiencias',
+        'kpi_query_type': 'single_row',
+        'series_aggregation': 'SUM'
     },
     'meta_ads': {
         'schema': 'kpi_tv',
         'tabela': 'meta_ads_daily',
         'filtro_col': '',
         'filtro_val': '',
+        'date_col': 'ref_date',
+        'updated_col': 'updated_at',
         'kpi_cols': ['cost', 'leads', 'clicks', 'cpl', 'cpc'],
         'chart_col': 'clicks',
+        'kpi_query_type': 'aggregated',
+        'kpi_aggregations': {
+            'cost': 'SUM',
+            'leads': 'SUM', 
+            'clicks': 'SUM',
+            'cpl': 'AVG',
+            'cpc': 'AVG'
+        },
+        'series_aggregation': 'SUM'
     },
     'google_ads': {
         'schema': 'kpi_tv',
         'tabela': 'google_ads_daily',
         'filtro_col': '',
         'filtro_val': '',
+        'date_col': 'ref_date',
+        'updated_col': 'updated_at',
         'kpi_cols': ['cost', 'leads', 'clicks', 'cpl', 'cpc'],
         'chart_col': 'clicks',
+        'kpi_query_type': 'aggregated',
+        'kpi_aggregations': {
+            'cost': 'SUM',
+            'leads': 'SUM',
+            'clicks': 'SUM', 
+            'cpl': 'AVG',
+            'cpc': 'AVG'
+        },
+        'series_aggregation': 'SUM'
     },
     'ti': {
         'schema': 'kpi_tv',
         'tabela': 'ti_chamados_daily',
         'filtro_col': '',
         'filtro_val': '',
+        'date_col': 'ref_date',
+        'updated_col': 'updated_at',
         'kpi_cols': ['abertos', 'andamento', 'resolvidos'],
         'chart_col': 'resolvidos',
+        'kpi_query_type': 'single_row',
+        'series_aggregation': 'SUM'
     },
     'liderhub': {
         'schema': 'kpi_tv',
         'tabela': 'liderhub_daily',
         'filtro_col': '',
         'filtro_val': '',
+        'date_col': 'ref_date',
+        'updated_col': 'updated_at',
         'kpi_cols': ['aguardando', 'em_andamento', 'finalizadas'],
         'chart_col': 'finalizadas',
+        'kpi_query_type': 'single_row',
+        'series_aggregation': 'SUM'
     },
     'evolution': {
         'schema': 'kpi_tv',
         'tabela': 'evolution_daily',
         'filtro_col': '',
         'filtro_val': '',
+        'date_col': 'ref_date',
+        'updated_col': 'update_at',
         'kpi_cols': ['conn_state_open', 'conn_state_not_open', 'messages_sent_total', 'frt_avg_seconds', 'unread_total'],
         'chart_col': 'unread_total',
+        'kpi_query_type': 'custom',
+        'custom_kpi_query': """
+            SELECT 
+                COUNT(CASE WHEN conn_state_current = 'open' THEN 1 END) as conn_state_open,
+                COUNT(CASE WHEN conn_state_current != 'open' THEN 1 END) as conn_state_not_open,
+                SUM(messages_sent_total) as messages_sent_total,
+                AVG(frt_avg_seconds) as frt_avg_seconds,
+                SUM(unread_total) as unread_total,
+                MAX({updated_col}) as updated_at
+            FROM {schema}.{tabela}
+            WHERE {date_col} = (
+                SELECT MAX({date_col}) FROM {schema}.{tabela}
+                {where_filter}
+            )
+            {and_filter}
+        """,
+        'series_aggregation': 'SUM'
     },
 }
 
+def build_kpi_query(config: Dict[str, Any]) -> str:
+    """Constrói a query de KPI baseada na configuração do sistema"""
+    schema = config['schema']
+    tabela = config['tabela']
+    date_col = config['date_col']
+    updated_col = config['updated_col']
+    filtro_col = config['filtro_col']
+    kpi_query_type = config['kpi_query_type']
+    
+    # Constrói as condições de filtro
+    where_filter = f"WHERE {filtro_col} = %s" if filtro_col else ""
+    and_filter = f"AND {filtro_col} = %s" if filtro_col else ""
+    
+    if kpi_query_type == 'custom':
+        # Para queries customizadas como evolution
+        return config['custom_kpi_query'].format(
+            schema=schema,
+            tabela=tabela,
+            date_col=date_col,
+            updated_col=updated_col,
+            where_filter=where_filter,
+            and_filter=and_filter
+        )
+    elif kpi_query_type == 'aggregated':
+        # Para sistemas que precisam de agregação como meta_ads/google_ads
+        kpi_aggregations = config['kpi_aggregations']
+        select_clause = ", ".join([
+            f"{agg}({col}) AS {col}_{agg.lower()}" 
+            for col, agg in kpi_aggregations.items()
+        ])
+        return f"""
+            SELECT 
+                {select_clause},
+                MAX({updated_col}) AS updated_at
+            FROM {schema}.{tabela}
+            WHERE {date_col} = (
+                SELECT MAX({date_col}) FROM {schema}.{tabela}
+                {where_filter}
+            )
+            {and_filter}
+        """
+    else:
+        # Para sistemas que pegam a linha mais recente (single_row)
+        kpi_cols = config['kpi_cols']
+        return f"""
+            SELECT {', '.join(kpi_cols)}, {updated_col}
+            FROM {schema}.{tabela}
+            {where_filter}
+            ORDER BY {date_col} DESC
+            LIMIT 1
+        """
+
+def build_series_query(config: Dict[str, Any]) -> str:
+    """Constrói a query de série temporal baseada na configuração do sistema"""
+    schema = config['schema']
+    tabela = config['tabela']
+    date_col = config['date_col']
+    filtro_col = config['filtro_col']
+    chart_col = config['chart_col']
+    series_aggregation = config['series_aggregation']
+    
+    where_filter = f"WHERE {filtro_col} = %s" if filtro_col else ""
+    
+    return f"""
+        SELECT {date_col}, {series_aggregation}({chart_col}) as value_sum
+        FROM {schema}.{tabela}
+        {where_filter}
+        GROUP BY {date_col}
+        ORDER BY {date_col} DESC
+        LIMIT 14
+    """
+
+def get_query_params(config: Dict[str, Any]) -> tuple:
+    """Retorna os parâmetros para as queries baseado na configuração"""
+    filtro_col = config['filtro_col']
+    filtro_val = config['filtro_val']
+    
+    if not filtro_col:
+        return ()
+    
+    kpi_query_type = config['kpi_query_type']
+    if kpi_query_type in ['custom', 'aggregated']:
+        # Para queries que precisam do filtro duas vezes (subquery + where principal)
+        return (filtro_val, filtro_val)
+    else:
+        # Para queries single_row que só precisam do filtro uma vez
+        return (filtro_val,)
+
 def get_kpi_and_series(system: str) -> tuple[Dict[str, Any], Dict[str, Any]]:
-    # Verifica se o sistema existe na configuração
+    """Função refatorada que usa configuração ao invés de if/else"""
     if system not in SISTEMAS_DB:
         raise HTTPException(status_code=404, detail="Sistema não encontrado")
     
-    # Recupera as configurações do sistema
     config = SISTEMAS_DB[system]
-    schema = config['schema']
-    tabela = config['tabela']
-    filtro_col = config['filtro_col']
-    filtro_val = config['filtro_val']
-    kpi_cols = config['kpi_cols']
-    chart_col = config['chart_col']
     
     with pool.connection() as conn:
         with conn.cursor() as cur:
-            # Para evolution, usa consultas especiais para contar estados de conexão
-            if system == 'evolution':
-                kpi_query = f"""
-                    SELECT 
-                        COUNT(CASE WHEN conn_state_current = 'open' THEN 1 END) as conn_state_open,
-                        COUNT(CASE WHEN conn_state_current != 'open' THEN 1 END) as conn_state_not_open,
-                        SUM(messages_sent_total) as messages_sent_total,
-                        AVG(frt_avg_seconds) as frt_avg_seconds,
-                        SUM(unread_total) as unread_total,
-                        MAX(updated_at) as updated_at
-                    FROM {schema}.{tabela}
-                    WHERE ref_date = (
-                        SELECT MAX(ref_date) FROM {schema}.{tabela}
-                        {"WHERE " + filtro_col + " = %s" if filtro_col else ""}
-                    )
-                    {"AND " + filtro_col + " = %s" if filtro_col else ""}
-                """
-                params = (filtro_val, filtro_val) if filtro_col else ()
-                cur.execute(kpi_query, params)
-                kpi_row = cur.fetchone()
-                kpi_values = list(kpi_row[:-1])
-                updated_at = kpi_row[-1]
-                
-                # Consulta de séries para evolution: soma do unread_total por dia
-                series_query = f"""
-                    SELECT ref_date, SUM({chart_col}) as value_sum
-                    FROM {schema}.{tabela}
-                    {"WHERE " + filtro_col + " = %s" if filtro_col else ""}
-                    GROUP BY ref_date
-                    ORDER BY ref_date DESC
-                    LIMIT 14
-                """
-                cur.execute(series_query, (filtro_val,) if filtro_col else ())
-                series_rows = cur.fetchall()
-            # Para meta_ads e google_ads, calcula a soma/média dos KPIs do dia mais recente
-            elif system in ['meta_ads', 'google_ads']:
-                kpi_query = f"""
-                    SELECT 
-                        SUM(cost) AS cost_sum,
-                        SUM(leads) AS leads_sum,
-                        SUM(clicks) AS clicks_sum,
-                        AVG(cpl) AS cpl_avg,
-                        AVG(cpc) AS cpc_avg,
-                        MAX(updated_at) AS updated_at
-                    FROM {schema}.{tabela}
-                    WHERE ref_date = (
-                        SELECT MAX(ref_date) FROM {schema}.{tabela}
-                        {"WHERE " + filtro_col + " = %s" if filtro_col else ""}
-                    )
-                    {"AND " + filtro_col + " = %s" if filtro_col else ""}
-                """
-                # Define os parâmetros para o filtro, se houver
-                params = (filtro_val, filtro_val) if filtro_col else ()
-                cur.execute(kpi_query, params)
-                kpi_row = cur.fetchone()
-                kpi_values = list(kpi_row[:-1])
-                updated_at = kpi_row[-1]
-                
-                # Consulta de séries: soma dos clicks por dia nos últimos 14 dias
-                series_query = f"""
-                    SELECT ref_date, SUM(clicks) as clicks_sum
-                    FROM {schema}.{tabela}
-                    {"WHERE " + filtro_col + " = %s" if filtro_col else ""}
-                    GROUP BY ref_date
-                    ORDER BY ref_date DESC
-                    LIMIT 14
-                """
-                cur.execute(series_query, (filtro_val,) if filtro_col else ())
-                series_rows = cur.fetchall()
-            else:
-                # Para os demais sistemas, pega a última linha dos KPIs
-                kpi_query = f"""
-                    SELECT {', '.join(kpi_cols)}, updated_at
-                    FROM {schema}.{tabela}
-                    {"WHERE " + filtro_col + " = %s" if filtro_col else ""}
-                    ORDER BY ref_date DESC
-                    LIMIT 1
-                """
-                cur.execute(kpi_query, (filtro_val,) if filtro_col else ())
-                kpi_row = cur.fetchone()
-                if not kpi_row:
-                    raise HTTPException(status_code=404, detail="Dados não encontrados")
-                kpi_values = list(kpi_row[:-1])
-                updated_at = kpi_row[-1]
-
-                # Consulta de séries: soma do campo do gráfico por dia nos últimos 14 dias
-                series_query = f"""
-                    SELECT ref_date, SUM({chart_col}) as value_sum
-                    FROM {schema}.{tabela}
-                    {"WHERE " + filtro_col + " = %s" if filtro_col else ""}
-                    GROUP BY ref_date
-                    ORDER BY ref_date DESC
-                    LIMIT 14
-                """
-                cur.execute(series_query, (filtro_val,) if filtro_col else ())
-                series_rows = cur.fetchall()
+            # Executa query de KPI
+            kpi_query = build_kpi_query(config)
+            kpi_params = get_query_params(config)
+            
+            cur.execute(kpi_query, kpi_params)
+            kpi_row = cur.fetchone()
+            
+            if not kpi_row:
+                raise HTTPException(status_code=404, detail="Dados não encontrados")
+            
+            kpi_values = list(kpi_row[:-1])
+            updated_at = kpi_row[-1]
+            
+            # Executa query de série temporal
+            series_query = build_series_query(config)
+            series_params = (config['filtro_val'],) if config['filtro_col'] else ()
+            
+            cur.execute(series_query, series_params)
+            series_rows = cur.fetchall()
             
             # Monta os pontos da série para o frontend (ordem cronológica crescente)
             series_points = [
@@ -224,13 +293,12 @@ def get_kpi_and_series(system: str) -> tuple[Dict[str, Any], Dict[str, Any]]:
                 for row in reversed(series_rows)
             ]
     
-    # Monta a resposta dos KPIs
+    # Monta as respostas
     kpis_response = {
         "values": kpi_values,
         "updatedAt": updated_at.isoformat() if isinstance(updated_at, datetime) else str(updated_at)
     }
     
-    # Monta a resposta das séries
     series_response = {
         "points": series_points,
         "label": system
@@ -261,19 +329,23 @@ async def get_detailed_data(system: str):
     tabela = config['tabela']
     filtro_col = config['filtro_col']
     filtro_val = config['filtro_val']
+    date_col = config['date_col']
+    updated_col = config['updated_col']
     
     with pool.connection() as conn:
         with conn.cursor() as cur:
-            # Consulta todos os dados dos últimos 30 dias
+            # Monta a query de detalhes usando a configuração
+            where_clause = f"WHERE {filtro_col} = %s" if filtro_col else ""
             detailed_query = f"""
                 SELECT *
                 FROM {schema}.{tabela}
-                {"WHERE " + filtro_col + " = %s" if filtro_col else ""}
-                ORDER BY ref_date DESC, updated_at DESC
+                {where_clause}
+                ORDER BY {date_col} DESC, {updated_col} DESC
                 LIMIT 1000
             """
             
-            cur.execute(detailed_query, (filtro_val,) if filtro_col else ())
+            params = (filtro_val,) if filtro_col else ()
+            cur.execute(detailed_query, params)
             rows = cur.fetchall()
             
             # Pega os nomes das colunas
