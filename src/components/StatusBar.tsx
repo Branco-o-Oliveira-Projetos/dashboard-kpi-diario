@@ -33,13 +33,13 @@ export default function StatusBar({ cycle }: StatusBarProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <motion.span
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-      >
-        Atualizado: {formattedTime}
-      </motion.span>
+        <motion.span 
+          className="whitespace-nowrap"
+          animate={{ opacity: [0.5, 1, 0.5] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          🔄 3 min • #{cycle}
+        </motion.span>
       
       {/* Links para páginas detalhadas */}
       <motion.div 
@@ -62,13 +62,6 @@ export default function StatusBar({ cycle }: StatusBarProps) {
           <a href="#" className="hover:text-text transition-colors hidden lg:inline">Portainer</a>
           <a href="#" className="hover:text-text transition-colors hidden lg:inline">RH</a>
         </nav>
-        <motion.span 
-          className="whitespace-nowrap"
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          🔄 3 min • ciclo #{cycle}
-        </motion.span>
       </motion.div>
     </motion.div>
   )

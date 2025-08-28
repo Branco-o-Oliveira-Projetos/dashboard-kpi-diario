@@ -9,7 +9,7 @@ import type { SystemKey } from "./types";
 const Logo = "https://s3.automacoesbeo.xyz/logos-empresas/Grupo_B_O.png";
 
 // Quantidade de cards por página do carrossel
-const CARDS_PER_PAGE = 6; // Aumentado para melhor uso do espaço
+const CARDS_PER_PAGE = 3; // Aumentado para melhor uso do espaço
 
 function App() {
   // Estado para controle do auto-refresh dos dados
@@ -44,10 +44,10 @@ function App() {
 
   // Organiza os sistemas em layout responsivo para o grid
   const grid = useMemo(() => {
-    if (pageSystems.length <= 2) {
-      return [pageSystems]; // Uma linha para 1-2 cards
+    if (pageSystems.length <= 3) {
+      return [pageSystems]; // Uma linha para 1-3 cards
     } else if (pageSystems.length <= 4) {
-      return [pageSystems.slice(0, 2), pageSystems.slice(2, 4)]; // Duas linhas para 3-4 cards
+      return [pageSystems.slice(0, 2), pageSystems.slice(2, 4)]; // Duas linhas para 4-5 cards
     } else {
       return [
         pageSystems.slice(0, 3), 
