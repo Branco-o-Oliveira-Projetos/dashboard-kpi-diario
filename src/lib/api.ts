@@ -8,32 +8,23 @@ const api = axios.create({
   timeout: 5000,
 })
 
-function generateMockKpis(system: SystemKey): KpisResponse {
-  const seed = system.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  const random = () => (Math.sin(seed + Date.now()) + 1) / 2
-  
+function generateMockKpis(_system: SystemKey): KpisResponse {
   return {
-    values: [
-      Math.floor(random() * 1000 + 100),
-      Math.floor(random() * 500 + 50),
-      Math.floor(random() * 200 + 20)
-    ],
+    values: [0, 0, 0],
     updatedAt: new Date().toISOString()
   }
 }
 
 function generateMockSeries(system: SystemKey): SeriesResponse {
-  const seed = system.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
   const points = []
   
   for (let i = 13; i >= 0; i--) {
     const date = new Date()
     date.setDate(date.getDate() - i)
-    const random = Math.sin(seed + i) * 50 + 100 + Math.random() * 50
     
     points.push({
       x: date.toISOString(),
-      y: Math.max(0, Math.floor(random))
+      y: 0
     })
   }
   
