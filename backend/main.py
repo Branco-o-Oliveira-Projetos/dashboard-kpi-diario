@@ -92,6 +92,14 @@ SISTEMAS_DB = {
         'kpi_cols': ['aguardando', 'em_andamento', 'finalizadas'],
         'chart_col': 'finalizadas',
     },
+    'evolution': {
+        'schema': 'kpi_tv',
+        'tabela': 'evolution_daily',
+        'filtro_col': '',
+        'filtro_val': '',
+        'kpi_cols': ['conn_state_open', 'conn_state_not_open', 'messages_sent_total', 'frt_avg_seconds', 'unread_total'],
+        'chart_col': 'unread_total',
+    },
 }
 
 def get_kpi_and_series(system: str) -> tuple[Dict[str, Any], Dict[str, Any]]:
@@ -110,8 +118,42 @@ def get_kpi_and_series(system: str) -> tuple[Dict[str, Any], Dict[str, Any]]:
     
     with pool.connection() as conn:
         with conn.cursor() as cur:
+            # Para evolution, usa consultas especiais para contar estados de conexão
+            if system == 'evolution':
+                kpi_query = f"""
+                    SELECT 
+                        COUNT(CASE WHEN conn_state_current = 'open' THEN 1 END) as conn_state_open,
+                        COUNT(CASE WHEN conn_state_current != 'open' THEN 1 END) as conn_state_not_open,
+                        SUM(messages_sent_total) as messages_sent_total,
+                        AVG(frt_avg_seconds) as frt_avg_seconds,
+                        SUM(unread_total) as unread_total,
+                        MAX(updated_at) as updated_at
+                    FROM {schema}.{tabela}
+                    WHERE ref_date = (
+                        SELECT MAX(ref_date) FROM {schema}.{tabela}
+                        {"WHERE " + filtro_col + " = %s" if filtro_col else ""}
+                    )
+                    {"AND " + filtro_col + " = %s" if filtro_col else ""}
+                """
+                params = (filtro_val, filtro_val) if filtro_col else ()
+                cur.execute(kpi_query, params)
+                kpi_row = cur.fetchone()
+                kpi_values = list(kpi_row[:-1])
+                updated_at = kpi_row[-1]
+                
+                # Consulta de séries para evolution: soma do unread_total por dia
+                series_query = f"""
+                    SELECT ref_date, SUM({chart_col}) as value_sum
+                    FROM {schema}.{tabela}
+                    {"WHERE " + filtro_col + " = %s" if filtro_col else ""}
+                    GROUP BY ref_date
+                    ORDER BY ref_date DESC
+                    LIMIT 14
+                """
+                cur.execute(series_query, (filtro_val,) if filtro_col else ())
+                series_rows = cur.fetchall()
             # Para meta_ads e google_ads, calcula a soma/média dos KPIs do dia mais recente
-            if system in ['meta_ads', 'google_ads']:
+            elif system in ['meta_ads', 'google_ads']:
                 kpi_query = f"""
                     SELECT 
                         SUM(cost) AS cost_sum,

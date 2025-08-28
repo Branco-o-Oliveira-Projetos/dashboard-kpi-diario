@@ -59,44 +59,113 @@ export default function GoogleAdsDetail() {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) // Ordem crescente
 
   return (
-    <div className="max-w-[1400px] mx-auto p-4">
+    <div className="min-h-screen w-full mx-auto px-4 py-6 max-w-full">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-text mb-2">Google Ads - Detalhes</h1>
-        <p className="text-text2">Análise detalhada das campanhas do Google Ads</p>
-        <Link to="/" className="text-blue-400 hover:underline mt-2 inline-block">← Voltar ao Dashboard</Link>
-      </div>
+      <motion.div 
+        className="mb-6"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <motion.h1 
+          className="text-2xl sm:text-3xl font-bold text-text mb-2 flex items-center gap-3"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          Google Ads - Detalhes
+        </motion.h1>
+        <motion.p 
+          className="text-text2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          Análise detalhada das campanhas do Google Ads
+        </motion.p>
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <Link to="/" className="text-blue-400 hover:underline mt-2 inline-block group">
+            <motion.span
+              className="inline-flex items-center"
+              whileHover={{ x: -5 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              ← Voltar ao Dashboard
+            </motion.span>
+          </Link>
+        </motion.div>
+      </motion.div>
 
       {/* KPIs Principais */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-        <motion.div className="card text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <div className="text-2xl font-bold text-text">{fmtMoney(latestData.cost)}</div>
-          <div className="text-sm text-text2">Custo</div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 mb-6">
+        <motion.div 
+          className="card text-center p-2 sm:p-3 lg:p-4" 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          whileHover={{ y: -2, scale: 1.02 }}
+        >
+          <div className="text-sm sm:text-lg lg:text-xl font-bold text-text">{fmtMoney(latestData.cost)}</div>
+          <div className="text-xs text-text2">Custo</div>
         </motion.div>
-        <motion.div className="card text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <div className="text-2xl font-bold text-text">{fmtNum(latestData.leads)}</div>
-          <div className="text-sm text-text2">Leads</div>
+        <motion.div 
+          className="card text-center p-2 sm:p-3 lg:p-4" 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          whileHover={{ y: -2, scale: 1.02 }}
+        >
+          <div className="text-sm sm:text-lg lg:text-xl font-bold text-text">{fmtNum(latestData.leads)}</div>
+          <div className="text-xs text-text2">Leads</div>
         </motion.div>
-        <motion.div className="card text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <div className="text-2xl font-bold text-text">{fmtNum(latestData.clicks)}</div>
-          <div className="text-sm text-text2">Clicks</div>
+        <motion.div 
+          className="card text-center p-2 sm:p-3 lg:p-4" 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          whileHover={{ y: -2, scale: 1.02 }}
+        >
+          <div className="text-sm sm:text-lg lg:text-xl font-bold text-text">{fmtNum(latestData.clicks)}</div>
+          <div className="text-xs text-text2">Clicks</div>
         </motion.div>
-        <motion.div className="card text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <div className="text-2xl font-bold text-text">{fmtMoney(latestData.cpl)}</div>
-          <div className="text-sm text-text2">CPL</div>
+        <motion.div 
+          className="card text-center p-2 sm:p-3 lg:p-4" 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          whileHover={{ y: -2, scale: 1.02 }}
+        >
+          <div className="text-sm sm:text-lg lg:text-xl font-bold text-text">{fmtMoney(latestData.cpl)}</div>
+          <div className="text-xs text-text2">CPL</div>
         </motion.div>
-        <motion.div className="card text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <div className="text-2xl font-bold text-text">{fmtNum(latestData.roas)}</div>
-          <div className="text-sm text-text2">ROAS</div>
+        <motion.div 
+          className="card text-center p-2 sm:p-3 lg:p-4" 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          whileHover={{ y: -2, scale: 1.02 }}
+        >
+          <div className="text-sm sm:text-lg lg:text-xl font-bold text-text">{fmtNum(latestData.roas)}</div>
+          <div className="text-xs text-text2">ROAS</div>
         </motion.div>
       </div>
 
       {/* Gráficos */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6 mb-6">
         {/* Gráfico de Custos */}
-        <motion.div className="card" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <h3 className="card-title">Custos por Dia</h3>
-          <div className="h-64">
+        <motion.div 
+          className="card" 
+          initial={{ opacity: 0, x: -30 }} 
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          whileHover={{ y: -2 }}
+        >
+          <h3 className="text-sm sm:text-lg font-semibold text-text mb-3 sm:mb-4">Custos por Dia</h3>
+          <div className="h-40 sm:h-48 lg:h-56">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dailyData}>
                 <XAxis 
@@ -104,9 +173,10 @@ export default function GoogleAdsDetail() {
                   tickFormatter={(value) => {
                     const date = new Date(value + 'T00:00:00')
                     return date.getDate().toString()
-                  }} 
+                  }}
+                  fontSize={10}
                 />
-                <YAxis />
+                <YAxis fontSize={10} />
                 <Tooltip 
                   labelFormatter={(value) => {
                     const date = new Date(value + 'T00:00:00')
@@ -128,9 +198,15 @@ export default function GoogleAdsDetail() {
         </motion.div>
 
         {/* Gráfico de Leads */}
-        <motion.div className="card" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <h3 className="card-title">Leads por Dia</h3>
-          <div className="h-64">
+        <motion.div 
+          className="card" 
+          initial={{ opacity: 0, x: 30 }} 
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.7 }}
+          whileHover={{ y: -2 }}
+        >
+          <h3 className="text-sm sm:text-lg font-semibold text-text mb-3 sm:mb-4">Leads por Dia</h3>
+          <div className="h-40 sm:h-48 lg:h-56">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={dailyData}>
                 <XAxis 
@@ -138,9 +214,10 @@ export default function GoogleAdsDetail() {
                   tickFormatter={(value) => {
                     const date = new Date(value + 'T00:00:00')
                     return date.getDate().toString()
-                  }} 
+                  }}
+                  fontSize={10}
                 />
-                <YAxis />
+                <YAxis fontSize={10} />
                 <Tooltip 
                   labelFormatter={(value) => {
                     const date = new Date(value + 'T00:00:00')
@@ -163,9 +240,15 @@ export default function GoogleAdsDetail() {
         </motion.div>
 
         {/* Gráfico de Clicks */}
-        <motion.div className="card" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <h3 className="card-title">Clicks por Dia</h3>
-          <div className="h-64">
+        <motion.div 
+          className="card" 
+          initial={{ opacity: 0, y: 30 }} 
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+          whileHover={{ y: -2 }}
+        >
+          <h3 className="text-sm sm:text-lg font-semibold text-text mb-3 sm:mb-4">Clicks por Dia</h3>
+          <div className="h-40 sm:h-48 lg:h-56">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dailyData}>
                 <XAxis 
@@ -174,8 +257,9 @@ export default function GoogleAdsDetail() {
                     const date = new Date(value + 'T00:00:00')
                     return date.getDate().toString()
                   }} 
+                  fontSize={10}
                 />
-                <YAxis />
+                <YAxis fontSize={10} />
                 <Tooltip 
                   labelFormatter={(value) => {
                     const date = new Date(value + 'T00:00:00')
@@ -197,9 +281,15 @@ export default function GoogleAdsDetail() {
         </motion.div>
 
         {/* Gráfico de ROAS */}
-        <motion.div className="card" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <h3 className="card-title">ROAS por Dia</h3>
-          <div className="h-64">
+        <motion.div 
+          className="card" 
+          initial={{ opacity: 0, y: 30 }} 
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.9 }}
+          whileHover={{ y: -2 }}
+        >
+          <h3 className="text-sm sm:text-lg font-semibold text-text mb-3 sm:mb-4">ROAS por Dia</h3>
+          <div className="h-40 sm:h-48 lg:h-56">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={dailyData}>
                 <XAxis 
@@ -208,8 +298,9 @@ export default function GoogleAdsDetail() {
                     const date = new Date(value + 'T00:00:00')
                     return date.getDate().toString()
                   }} 
+                  fontSize={10}
                 />
-                <YAxis />
+                <YAxis fontSize={10} />
                 <Tooltip 
                   labelFormatter={(value) => {
                     const date = new Date(value + 'T00:00:00')
@@ -233,8 +324,14 @@ export default function GoogleAdsDetail() {
       </div>
 
       {/* Tabela de Campanhas */}
-      <motion.div className="card" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <h3 className="card-title">Campanhas Recentes</h3>
+      <motion.div 
+        className="card" 
+        initial={{ opacity: 0, y: 50 }} 
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 1.0 }}
+        whileHover={{ y: -2 }}
+      >
+        <h3 className="text-sm sm:text-lg font-semibold text-text mb-3 sm:mb-4">Campanhas Recentes</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -252,7 +349,17 @@ export default function GoogleAdsDetail() {
             </thead>
             <tbody>
               {records.slice(0, 20).map((record, idx) => (
-                <tr key={idx} className="border-b border-bg2/50 hover:bg-bg2/20">
+                <motion.tr 
+                  key={idx} 
+                  className="border-b border-bg2/50 hover:bg-bg2/20"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: idx * 0.05 + 1.1 }}
+                  whileHover={{ 
+                    backgroundColor: "rgba(255, 255, 255, 0.05)",
+                    transition: { duration: 0.2 }
+                  }}
+                >
                   <td className="p-2">{new Date(record.ref_date + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
                   <td className="p-2 truncate max-w-[150px]" title={record.account_name}>
                     {record.account_name}
@@ -264,7 +371,7 @@ export default function GoogleAdsDetail() {
                   <td className="p-2 text-right">{fmtMoney(record.cpc)}</td>
                   <td className="p-2 text-right">{fmtNum(record.roas)}</td>
                   <td className="p-2 text-right">{fmtMoney(record.gasto_medio)}</td>
-                </tr>
+                </motion.tr>
               ))}
             </tbody>
           </table>

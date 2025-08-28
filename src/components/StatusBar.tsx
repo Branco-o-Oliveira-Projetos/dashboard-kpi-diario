@@ -35,13 +35,17 @@ export default function StatusBar({ cycle }: StatusBarProps) {
           <Link to="/meta-ads" className="hover:text-text transition-colors">Meta Ads</Link>
           <Link to="/google-ads" className="hover:text-text transition-colors">Google Ads</Link>
           <Link to="/piperun" className="hover:text-text transition-colors">PipeRun</Link>
-          <a href="/conta-azul" className="hover:text-text transition-colors">Conta Azul</a>
-          <a href="/cpj3c" className="hover:text-text transition-colors">CPJ-3C</a>
-          <a href="/ti" className="hover:text-text transition-colors">T.I</a>
-          <a href="/liderhub" className="hover:text-text transition-colors">Liderhub</a>
+          <a href="#" className="hover:text-text transition-colors">Conta Azul</a>
+          <a href="#" className="hover:text-text transition-colors">CPJ-3C</a>
+          <a href="#" className="hover:text-text transition-colors">T.I</a>
+          <a href="#" className="hover:text-text transition-colors">Liderhub</a>
           <Link to="/n8n" className="hover:text-text transition-colors">N8N</Link>
+          <a href="#" className="hover:text-text transition-colors">GitHub</a>
+          <Link to="/evolution" className="hover:text-text transition-colors">Evolution</Link>
+          <a href="#" className="hover:text-text transition-colors">Portainer</a>
+          <a href="#" className="hover:text-text transition-colors">RH</a>
         </nav>
-        <span>| Auto-refresh: 3 min • ciclo #{cycle}</span>
+        <span>| 🔄3 min • ciclo #{cycle}</span>
       </div>
     </div>
   )
