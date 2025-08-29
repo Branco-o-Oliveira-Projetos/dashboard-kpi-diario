@@ -680,7 +680,7 @@ export default function N8nDetail() {
                       transition: { duration: 0.2 }
                     }}
                   >
-                    <td className="p-1 sm:p-2 text-xs sm:text-sm">{new Date(record.ref_date).toLocaleDateString('pt-BR')}</td>
+                    <td className="p-1 sm:p-2 text-xs sm:text-sm">{new Date(record.ref_date + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
                     <td className="p-1 sm:p-2 truncate max-w-[100px] sm:max-w-[150px] text-xs sm:text-sm" title={record.workspace_name}>
                       {record.workspace_name}
                     </td>
