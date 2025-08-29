@@ -118,7 +118,6 @@ export default function EvolutionDetail() {
   if (error) return <div className="p-8 text-red-500">Erro ao carregar dados</div>
 
   const records: EvolutionData[] = data || []
-  const latestData = records[0] || {}
 
   // Preparar dados para gráficos
   const dailyData = records.reduce((acc, item) => {
@@ -126,19 +125,24 @@ export default function EvolutionDetail() {
     const existing = acc.find(d => d.date === date)
     
     if (existing) {
+      // Somar todos os valores do dia
       existing.messages_sent_total += item.messages_sent_total
       existing.client_messages += item.client_messages
       existing.response_messages += item.response_messages
       existing.delivered_message += item.delivered_message
       existing.chats_active += item.chats_active
       existing.total_chats += item.total_chats
+      
       // Adicionar instância única à lista se não existir
       if (!existing.instances.includes(item.instance_name)) {
         existing.instances.push(item.instance_name)
       }
-      existing.delivered_rate_pct = (existing.delivered_rate_pct + item.delivered_rate_pct) / 2
-      existing.read_rate_pct = (existing.read_rate_pct + item.read_rate_pct) / 2
-      existing.frt_avg_minutes = (existing.frt_avg_minutes + item.frt_avg_minutes) / 2
+      
+      // Para porcentagens e médias, acumular valores para calcular média ponderada depois
+      existing.delivered_rate_sum += item.delivered_rate_pct
+      existing.read_rate_sum += item.read_rate_pct
+      existing.frt_avg_sum += item.frt_avg_minutes
+      existing.record_count += 1
     } else {
       acc.push({
         date,
@@ -149,17 +153,50 @@ export default function EvolutionDetail() {
         chats_active: item.chats_active,
         total_chats: item.total_chats,
         instances: [item.instance_name], // Array com instâncias únicas
-        delivered_rate_pct: item.delivered_rate_pct,
-        read_rate_pct: item.read_rate_pct,
-        frt_avg_minutes: item.frt_avg_minutes
+        delivered_rate_sum: item.delivered_rate_pct,
+        read_rate_sum: item.read_rate_pct,
+        frt_avg_sum: item.frt_avg_minutes,
+        record_count: 1
       })
     }
     return acc
-  }, [] as any[]).slice(0, 30).reverse()
+  }, [] as any[])
+  
+  // Calcular médias e preparar dados finais
+  .map(day => ({
+    ...day,
+    delivered_rate_pct: day.delivered_rate_sum / day.record_count,
+    read_rate_pct: day.read_rate_sum / day.record_count,
+    frt_avg_minutes: day.frt_avg_sum / day.record_count
+  }))
+  .slice(0, 30)
+  .reverse()
 
   // Calcular total de instâncias únicas
   const uniqueInstances = [...new Set(records.map(record => record.instance_name))]
   const totalInstances = uniqueInstances.length
+
+  // Calcular somas agregadas para os KPIs
+  const aggregatedKPIs = records.reduce((acc, record) => {
+    acc.totalMessagesSent += record.messages_sent_total
+    acc.totalClientMessages += record.client_messages
+    acc.totalChatsActive += record.chats_active
+    acc.deliveredRateSum += record.delivered_rate_pct
+    acc.frtAvgSum += record.frt_avg_minutes
+    acc.recordCount += 1
+    return acc
+  }, {
+    totalMessagesSent: 0,
+    totalClientMessages: 0,
+    totalChatsActive: 0,
+    deliveredRateSum: 0,
+    frtAvgSum: 0,
+    recordCount: 0
+  })
+
+  // Calcular médias
+  const avgDeliveredRate = aggregatedKPIs.recordCount > 0 ? aggregatedKPIs.deliveredRateSum / aggregatedKPIs.recordCount : 0
+  const avgFrtMinutes = aggregatedKPIs.recordCount > 0 ? aggregatedKPIs.frtAvgSum / aggregatedKPIs.recordCount : 0
 
   return (
     <div className="min-h-screen w-full mx-auto px-4 py-6 max-w-full">
@@ -215,7 +252,7 @@ export default function EvolutionDetail() {
           <h3 className="text-sm sm:text-lg font-semibold text-text mb-4 text-center">Status da API em Tempo Real</h3>
           <ConnectionStatusAnimation />
           <div className="text-center text-text2 text-sm mt-4">
-            Instância ativa • {fmtNum(latestData.messages_sent_total)} mensagens enviadas
+            Instância ativa • {fmtNum(aggregatedKPIs.totalMessagesSent)} mensagens enviadas
           </div>
         </div>
       </motion.div>
@@ -229,7 +266,7 @@ export default function EvolutionDetail() {
           transition={{ duration: 0.6, delay: 0.6 }}
           whileHover={{ y: -2, scale: 1.02 }}
         >
-          <div className="text-sm sm:text-lg lg:text-xl font-bold text-green-400">{fmtNum(latestData.messages_sent_total)}</div>
+          <div className="text-sm sm:text-lg lg:text-xl font-bold text-green-400">{fmtNum(aggregatedKPIs.totalMessagesSent)}</div>
           <div className="text-xs text-text2">Msgs Enviadas</div>
         </motion.div>
         
@@ -240,7 +277,7 @@ export default function EvolutionDetail() {
           transition={{ duration: 0.6, delay: 0.7 }}
           whileHover={{ y: -2, scale: 1.02 }}
         >
-          <div className="text-sm sm:text-lg lg:text-xl font-bold text-blue-400">{fmtNum(latestData.client_messages)}</div>
+          <div className="text-sm sm:text-lg lg:text-xl font-bold text-blue-400">{fmtNum(aggregatedKPIs.totalClientMessages)}</div>
           <div className="text-xs text-text2">Msgs Clientes</div>
         </motion.div>
         
@@ -251,7 +288,7 @@ export default function EvolutionDetail() {
           transition={{ duration: 0.6, delay: 0.8 }}
           whileHover={{ y: -2, scale: 1.02 }}
         >
-          <div className="text-sm sm:text-lg lg:text-xl font-bold text-purple-400">{fmtNum(latestData.chats_active)}</div>
+          <div className="text-sm sm:text-lg lg:text-xl font-bold text-purple-400">{fmtNum(aggregatedKPIs.totalChatsActive)}</div>
           <div className="text-xs text-text2">Chats Ativos</div>
         </motion.div>
         
@@ -273,7 +310,7 @@ export default function EvolutionDetail() {
           transition={{ duration: 0.6, delay: 1.0 }}
           whileHover={{ y: -2, scale: 1.02 }}
         >
-          <div className="text-sm sm:text-lg lg:text-xl font-bold text-text">{latestData.delivered_rate_pct?.toFixed(1)}%</div>
+          <div className="text-sm sm:text-lg lg:text-xl font-bold text-text">{avgDeliveredRate.toFixed(1)}%</div>
           <div className="text-xs text-text2">Taxa Entrega</div>
         </motion.div>
         
@@ -284,7 +321,7 @@ export default function EvolutionDetail() {
           transition={{ duration: 0.6, delay: 1.1 }}
           whileHover={{ y: -2, scale: 1.02 }}
         >
-          <div className="text-sm sm:text-lg lg:text-xl font-bold text-text">{fmtNum(latestData.frt_avg_minutes)} min</div>
+          <div className="text-sm sm:text-lg lg:text-xl font-bold text-text">{avgFrtMinutes.toFixed(1)} min</div>
           <div className="text-xs text-text2">Tempo Médio Resposta</div>
         </motion.div>
       </div>
@@ -424,7 +461,7 @@ export default function EvolutionDetail() {
           transition={{ duration: 0.6, delay: 1.5 }}
           whileHover={{ y: -2 }}
         >
-          <h3 className="text-sm sm:text-lg font-semibold text-text mb-3 sm:mb-4">⏱️ Tempo de Resposta (s)</h3>
+          <h3 className="text-sm sm:text-lg font-semibold text-text mb-3 sm:mb-4">⏱️ Tempo de Resposta (min)</h3>
           <div className="h-40 sm:h-48 lg:h-56">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dailyData}>
