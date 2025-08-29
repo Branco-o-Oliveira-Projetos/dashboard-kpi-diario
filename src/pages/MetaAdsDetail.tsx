@@ -29,6 +29,7 @@ interface MetaAdsData {
 
 export default function MetaAdsDetail() {
   const [selectedCampaign, setSelectedCampaign] = useState<string>('')
+  const [selectedAccount, setSelectedAccount] = useState<string>('')
   
   const { data, isLoading, error } = useQuery({
     queryKey: ['meta-ads-detail'],
@@ -90,10 +91,12 @@ export default function MetaAdsDetail() {
 
   const records: MetaAdsData[] = data || []
   
-  // Filtrar dados por campanha se selecionada
-  const filteredRecords = selectedCampaign 
-    ? records.filter(record => record.campaign_name === selectedCampaign)
-    : records
+  // Filtrar dados por campanha e conta se selecionadas
+  const filteredRecords = records.filter(record => {
+    const campaignMatch = !selectedCampaign || record.campaign_name === selectedCampaign
+    const accountMatch = !selectedAccount || record.account_name === selectedAccount
+    return campaignMatch && accountMatch
+  })
 
   // Obter data mais recente nos dados
   const mostRecentDate = filteredRecords.reduce((latest, record) => {
@@ -129,12 +132,13 @@ export default function MetaAdsDetail() {
     records: 0
   })
 
-  // MÉDIAS SIMPLES por registro (o que você pediu)
+  // MÉDIAS SIMPLES por registro
   const avgCPL = kpiData.countCPL > 0 ? kpiData.sumCPL / kpiData.countCPL : 0
   const avgCPC = kpiData.countCPC > 0 ? kpiData.sumCPC / kpiData.countCPC : 0
   
-  // Obter lista única de campanhas para o dropdown
+  // Obter lista única de campanhas e contas para os dropdowns
   const uniqueCampaigns = [...new Set(records.map(record => record.campaign_name))].sort()
+  const uniqueAccounts = [...new Set(records.map(record => record.account_name))].sort()
 
   // Preparar dados para gráficos
   const dailyData = filteredRecords.reduce((acc, item) => {
@@ -206,50 +210,99 @@ export default function MetaAdsDetail() {
             </motion.span>
           </Link>
           
-          {/* Filtro por Campanha */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-            <label htmlFor="campaign-filter" className="text-xs sm:text-sm text-text2">
-              Filtrar por campanha:
-            </label>
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <select
-                id="campaign-filter"
-                value={selectedCampaign}
-                onChange={(e) => setSelectedCampaign(e.target.value)}
-                className="bg-bg2 text-text border border-bg2 rounded px-2 sm:px-3 py-1 text-xs sm:text-sm focus:outline-none focus:border-blue-400 w-full sm:w-auto min-w-[200px]"
-              >
-                <option value="">Todas as campanhas</option>
-                {uniqueCampaigns.map((campaign, index) => (
-                  <option key={index} value={campaign}>
-                    {campaign}
-                  </option>
-                ))}
-              </select>
-              {selectedCampaign && (
-                <motion.button
-                  onClick={() => setSelectedCampaign('')}
-                  className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs sm:text-sm transition-colors flex-shrink-0"
-                  title="Limpar filtro"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+          {/* Filtros */}
+          <div className="flex flex-col gap-3">
+            {/* Filtro por Campanha */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+              <label htmlFor="campaign-filter" className="text-xs sm:text-sm text-text2 min-w-[120px]">
+                Filtrar por campanha:
+              </label>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <select
+                  id="campaign-filter"
+                  value={selectedCampaign}
+                  onChange={(e) => setSelectedCampaign(e.target.value)}
+                  className="bg-bg2 text-text border border-bg2 rounded px-2 sm:px-3 py-1 text-xs sm:text-sm focus:outline-none focus:border-blue-400 w-full sm:w-auto min-w-[200px]"
                 >
-                  ✕
-                </motion.button>
-              )}
+                  <option value="">Todas as campanhas</option>
+                  {uniqueCampaigns.map((campaign, index) => (
+                    <option key={index} value={campaign}>
+                      {campaign}
+                    </option>
+                  ))}
+                </select>
+                {selectedCampaign && (
+                  <motion.button
+                    onClick={() => setSelectedCampaign('')}
+                    className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs sm:text-sm transition-colors flex-shrink-0"
+                    title="Limpar filtro de campanha"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    ✕
+                  </motion.button>
+                )}
+              </div>
+            </div>
+
+            {/* Filtro por Conta */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+              <label htmlFor="account-filter" className="text-xs sm:text-sm text-text2 min-w-[120px]">
+                Filtrar por conta:
+              </label>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <select
+                  id="account-filter"
+                  value={selectedAccount}
+                  onChange={(e) => setSelectedAccount(e.target.value)}
+                  className="bg-bg2 text-text border border-bg2 rounded px-2 sm:px-3 py-1 text-xs sm:text-sm focus:outline-none focus:border-green-400 w-full sm:w-auto min-w-[200px]"
+                >
+                  <option value="">Todas as contas</option>
+                  {uniqueAccounts.map((account, index) => (
+                    <option key={index} value={account}>
+                      {account}
+                    </option>
+                  ))}
+                </select>
+                {selectedAccount && (
+                  <motion.button
+                    onClick={() => setSelectedAccount('')}
+                    className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs sm:text-sm transition-colors flex-shrink-0"
+                    title="Limpar filtro de conta"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    ✕
+                  </motion.button>
+                )}
+              </div>
             </div>
           </div>
         </motion.div>
         
-        {selectedCampaign && (
+        {(selectedCampaign || selectedAccount) && (
           <motion.div 
             className="mt-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
           >
-            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-              <span className="text-blue-400 text-xs sm:text-sm">📊 Exibindo dados para:</span>
-              <span className="text-text font-medium text-xs sm:text-sm break-all">{selectedCampaign}</span>
+            <div className="flex flex-col gap-2">
+              <span className="text-blue-400 text-xs sm:text-sm">📊 Filtros ativos:</span>
+              <div className="flex flex-col gap-1">
+                {selectedCampaign && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-text2 text-xs">Campanha:</span>
+                    <span className="text-text font-medium text-xs sm:text-sm break-all">{selectedCampaign}</span>
+                  </div>
+                )}
+                {selectedAccount && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-text2 text-xs">Conta:</span>
+                    <span className="text-text font-medium text-xs sm:text-sm break-all">{selectedAccount}</span>
+                  </div>
+                )}
+              </div>
             </div>
           </motion.div>
         )}
@@ -630,10 +683,16 @@ export default function MetaAdsDetail() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 3.0 }}
         >
-          {selectedCampaign 
-            ? `Registros da Campanha: ${selectedCampaign}`
-            : 'Campanhas Recentes'
-          }
+          {(() => {
+            if (selectedCampaign && selectedAccount) {
+              return `Registros: ${selectedCampaign} - ${selectedAccount}`
+            } else if (selectedCampaign) {
+              return `Registros da Campanha: ${selectedCampaign}`
+            } else if (selectedAccount) {
+              return `Registros da Conta: ${selectedAccount}`
+            }
+            return 'Registros Recentes'
+          })()}
         </motion.h3>
         <motion.div 
           className="overflow-x-auto"
