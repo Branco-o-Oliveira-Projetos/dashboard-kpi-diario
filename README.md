@@ -219,10 +219,8 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para de
 
 ## 📞 Suporte e Contato
 
-**Desenvolvedor**: Giulliano Veiga  
-📧 Email: [giullianoveiga@gmail.com](mailto:giullianoveiga@gmail.com)  
-💼 LinkedIn: [linkedin.com/in/giulliano-veiga](https://www.linkedin.com/in/giulliano-veiga)  
-📱 Instagram: [@giullianoveiga](https://www.instagram.com/giullianoveiga)
+**Departamento de Inovação B&O**
+Giulliano Veiga e Joana Kelly
 
 **Repositório**: [dashboard-kpi-diario](https://github.com/Branco-o-Oliveira-Projetos/dashboard-kpi-diario)  
 **Organização**: Branco-o-Oliveira-Projetos
@@ -230,8 +228,6 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para de
 ---
 
 <div align="center">
-
-**Feito por Giulliano Veiga**
 
 ⭐ Se este projeto te ajudou, considere dar uma estrela!
 

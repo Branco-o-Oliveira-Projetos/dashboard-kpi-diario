@@ -16,6 +16,7 @@ interface GoogleAdsData {
   cpl: number
   cpc: number
   roas: number
+  impressions: number
   gasto_medio: number
   updated_at: string
 }
@@ -42,12 +43,14 @@ export default function GoogleAdsDetail() {
       existing.cost += item.cost
       existing.leads += item.leads
       existing.clicks += item.clicks
+      existing.impressions += item.impressions
     } else {
       acc.push({
         date,
         cost: item.cost,
         leads: item.leads,
         clicks: item.clicks,
+        impressions: item.impressions,
         cpl: item.cpl,
         cpc: item.cpc,
         roas: item.roas,
@@ -281,7 +284,7 @@ export default function GoogleAdsDetail() {
           </div>
         </motion.div>
 
-        {/* Gráfico de ROAS */}
+        {/* Gráfico de Impressões */}
         <motion.div 
           className="card" 
           initial={{ opacity: 0, y: 30 }} 
@@ -289,10 +292,10 @@ export default function GoogleAdsDetail() {
           transition={{ duration: 0.6, delay: 0.9 }}
           whileHover={{ y: -2 }}
         >
-          <h3 className="text-sm sm:text-lg font-semibold text-text mb-3 sm:mb-4">ROAS por Dia</h3>
+          <h3 className="text-sm sm:text-lg font-semibold text-text mb-3 sm:mb-4">Impressões por Dia</h3>
           <div className="h-40 sm:h-48 lg:h-56">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={dailyData}>
+              <BarChart data={dailyData}>
                 <XAxis 
                   dataKey="date" 
                   tickFormatter={(value) => {
@@ -307,18 +310,17 @@ export default function GoogleAdsDetail() {
                     const date = new Date(value + 'T00:00:00')
                     return date.toLocaleDateString('pt-BR')
                   }}
-                  formatter={(value: number) => [fmtNum(value), 'ROAS']}
+                  formatter={(value: number) => [fmtNum(value), 'Impressões']}
                 />
-                <Line type="monotone" dataKey="roas" stroke="#EA4335" strokeWidth={2}>
+                <Bar dataKey="impressions" fill="#34A853" radius={4}>
                   <LabelList 
-                    dataKey="roas" 
+                    dataKey="impressions" 
                     position="top" 
                     formatter={(value: number) => fmtNum(value)}
-                    style={{ fill: '#EA4335', fontSize: '10px', fontWeight: 'bold' }}
-                    offset={10}
+                    style={{ fill: '#34A853', fontSize: '10px', fontWeight: 'bold' }}
                   />
-                </Line>
-              </LineChart>
+                </Bar>
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </motion.div>
@@ -341,6 +343,7 @@ export default function GoogleAdsDetail() {
                 <th className="text-left p-2">Conta</th>
                 <th className="text-left p-2">Campanha</th>
                 <th className="text-right p-2">Custo</th>
+                <th className="text-right p-2">Impressões</th>
                 <th className="text-right p-2">Leads</th>
                 <th className="text-right p-2">Clicks</th>
                 <th className="text-right p-2">CPL</th>
@@ -370,6 +373,7 @@ export default function GoogleAdsDetail() {
                     {record.campaign_name || 'N/A'}
                   </td>
                   <td className="p-2 text-right">{fmtMoney(record.cost)}</td>
+                  <td className="p-2 text-right">{fmtNum(record.impressions || 0)}</td>
                   <td className="p-2 text-right">{fmtNum(record.leads)}</td>
                   <td className="p-2 text-right">{fmtNum(record.clicks)}</td>
                   <td className="p-2 text-right">{fmtMoney(record.cpl)}</td>
