@@ -331,7 +331,7 @@ export default function GoogleAdsDetail() {
         transition={{ duration: 0.6, delay: 1.0 }}
         whileHover={{ y: -2 }}
       >
-        <h3 className="text-sm sm:text-lg font-semibold text-text mb-3 sm:mb-4">Campanhas Recentes</h3>
+        <h3 className="text-sm sm:text-lg font-semibold text-text mb-3 sm:mb-4">Todas as Contas</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
