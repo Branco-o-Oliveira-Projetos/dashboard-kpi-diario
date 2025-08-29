@@ -102,14 +102,20 @@ export default function MetaAdsDetail() {
     return recordDate > latestDate ? record.ref_date : latest
   }, filteredRecords[0]?.ref_date || '')
 
-  // Calcular KPIs do dia atual (data mais recente)
-  const todayRecords = filteredRecords.filter(record => record.ref_date === mostRecentDate)
-  const kpiData = todayRecords.reduce((acc, record) => {
-    acc.totalCost += record.cost || 0
-    acc.totalLeads += record.leads || 0
-    acc.totalClicks += record.clicks || 0
-    acc.totalImpressions += record.impressions || 0
-    acc.totalReach += record.reach || 0
+  // Filtra os registros do dia mais recente
+  const todayRecords = filteredRecords.filter(r => r.ref_date === mostRecentDate)
+
+  const kpiData = todayRecords.reduce((acc, r) => {
+    acc.totalCost        += r.cost        ?? 0
+    acc.totalLeads       += r.leads       ?? 0
+    acc.totalClicks      += r.clicks      ?? 0
+    acc.totalImpressions += r.impressions ?? 0
+    acc.totalReach       += r.reach       ?? 0
+
+    // Somatórios para médias simples
+    if (typeof r.cpl === 'number') { acc.sumCPL += r.cpl; acc.countCPL += 1 }
+    if (typeof r.cpc === 'number') { acc.sumCPC += r.cpc; acc.countCPC += 1 }
+
     acc.records += 1
     return acc
   }, {
@@ -118,12 +124,14 @@ export default function MetaAdsDetail() {
     totalClicks: 0,
     totalImpressions: 0,
     totalReach: 0,
+    sumCPL: 0,  countCPL: 0,
+    sumCPC: 0,  countCPC: 0,
     records: 0
   })
-  
-  // CPL e CPC médios
-  const avgCPL = kpiData.totalLeads > 0 ? kpiData.totalCost / kpiData.totalLeads : 0
-  const avgCPC = kpiData.totalClicks > 0 ? kpiData.totalCost / kpiData.totalClicks : 0
+
+  // MÉDIAS SIMPLES por registro (o que você pediu)
+  const avgCPL = kpiData.countCPL > 0 ? kpiData.sumCPL / kpiData.countCPL : 0
+  const avgCPC = kpiData.countCPC > 0 ? kpiData.sumCPC / kpiData.countCPC : 0
   
   // Obter lista única de campanhas para o dropdown
   const uniqueCampaigns = [...new Set(records.map(record => record.campaign_name))].sort()
