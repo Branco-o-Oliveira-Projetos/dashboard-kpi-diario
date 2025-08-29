@@ -217,13 +217,6 @@ rm -rf backend/__pycache__/
 
 Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para detalhes.
 
-## 📞 Suporte e Contato
-
-**Desenvolvedor**: Giulliano Veiga  
-📧 Email: [giullianoveiga@gmail.com](mailto:giullianoveiga@gmail.com)  
-💼 LinkedIn: [linkedin.com/in/giulliano-veiga](https://www.linkedin.com/in/giulliano-veiga)  
-📱 Instagram: [@giullianoveiga](https://www.instagram.com/giullianoveiga)
-
 **Repositório**: [dashboard-kpi-diario](https://github.com/Branco-o-Oliveira-Projetos/dashboard-kpi-diario)  
 **Organização**: Branco-o-Oliveira-Projetos
 
