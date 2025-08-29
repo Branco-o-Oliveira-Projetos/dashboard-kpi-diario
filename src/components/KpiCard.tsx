@@ -21,7 +21,7 @@ function Metric({ label, value, isMoney }: { label: string; value: number | null
       transition={{ type: "spring", stiffness: 300 }}
     >
       <motion.div 
-        className="text-sm sm:text-lg lg:text-xl font-bold text-text"
+        className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold text-text"
         initial={{ opacity: 0, scale: 0 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ 
@@ -32,7 +32,9 @@ function Metric({ label, value, isMoney }: { label: string; value: number | null
       >
         {isMoney ? fmtMoney(value) : fmtNum(value)}
       </motion.div>
-      <div className="text-xs sm:text-sm text-text2 mt-1">{label}</div>
+      <div className="text-xs sm:text-xs md:text-xs lg:text-sm text-text2 mt-1 leading-tight break-words overflow-hidden">
+        {label}
+      </div>
     </motion.div>
   )
 }
@@ -72,7 +74,7 @@ export default function KpiCard({
       }}
     >
       <motion.div 
-        className="card-title text-lg sm:text-xl"
+        className="card-title text-sm sm:text-base md:text-lg lg:text-xl leading-tight"
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}

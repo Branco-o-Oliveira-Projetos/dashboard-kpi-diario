@@ -43,3 +43,51 @@
     @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 }
+
+/* Estilos específicos para telas pequenas (TVs e dispositivos compactos) */
+@media (max-width: 640px) {
+  .card {
+    padding: 0.5rem !important;
+  }
+  
+  .card-title {
+    font-size: 0.75rem !important;
+    line-height: 1.2 !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  /* Labels das métricas menores */
+  .card .text-text2 {
+    font-size: 0.625rem !important;
+    line-height: 1 !important;
+  }
+
+  /* Valores das métricas ajustados */
+  .card .text-text {
+    font-size: 0.75rem !important;
+  }
+}
+
+/* Extra small screens - principalmente para TVs com pouco espaço */
+@media (max-width: 480px) {
+  .card {
+    padding: 0.25rem !important;
+  }
+  
+  .card-title {
+    font-size: 0.6rem !important;
+    line-height: 1 !important;
+    margin-bottom: 0.25rem !important;
+  }
+
+  /* Labels das métricas ainda menores */
+  .card .text-text2 {
+    font-size: 0.5rem !important;
+    line-height: 0.9 !important;
+  }
+
+  /* Valores das métricas ainda menores */
+  .card .text-text {
+    font-size: 0.625rem !important;
+  }
+}
