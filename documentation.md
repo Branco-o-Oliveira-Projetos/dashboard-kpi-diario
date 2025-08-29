@@ -43,33 +43,57 @@ O **Dashboard KPI Diário** é um sistema de monitoramento em tempo real que con
 
 ```
 bo-dashboard/
-├── backend/                     # API Backend
-│   ├── main.py                 # Aplicação FastAPI principal
-│   ├── config.py              # Configurações do banco
-│   ├── requirements.txt       # Dependências Python
-│   └── test_*.py             # Testes de conectividade
-├── src/                       # Frontend React
-│   ├── components/           # Componentes reutilizáveis
-│   │   ├── KpiCard.tsx      # Card de KPIs com gráfico
-│   │   └── StatusBar.tsx    # Barra de status do sistema
-│   ├── pages/               # Páginas da aplicação
-│   │   ├── EvolutionDetail.tsx    # Detalhes Evolution
-│   │   ├── GoogleAdsDetail.tsx    # Detalhes Google Ads
+├── .env                        # Variáveis de ambiente (local)
+├── .env.example               # Exemplo de variáveis de ambiente
+├── .gitignore                 # Arquivos ignorados pelo Git
+├── .venv/                     # Ambiente virtual Python (raiz)
+├── documentation.md           # Esta documentação
+├── README.md                  # Documentação básica do projeto
+├── docker-compose.yml         # Orchestração Docker
+├── Dockerfile                 # Imagem Docker frontend
+├── index.html                 # Template HTML principal
+├── package.json              # Dependências Node.js
+├── package-lock.json         # Lock file das dependências
+├── postcss.config.js         # Configuração PostCSS
+├── tailwind.config.js        # Configuração Tailwind CSS
+├── tsconfig.json             # Configuração TypeScript
+├── tsconfig.node.json        # Configuração TypeScript para Node
+├── vite.config.ts            # Configuração Vite
+├── backend/                  # API Backend
+│   ├── .venv/               # Ambiente virtual Python (backend)
+│   ├── __pycache__/         # Cache Python compilado
+│   │   ├── config.cpython-312.pyc
+│   │   ├── config.cpython-313.pyc
+│   │   ├── main.cpython-312.pyc
+│   │   └── main.cpython-313.pyc
+│   ├── config.py           # Configurações do banco de dados
+│   ├── Dockerfile          # Imagem Docker backend
+│   ├── main.py            # Aplicação FastAPI principal
+│   ├── requirements.txt   # Dependências Python
+│   ├── test_db.py         # Teste de conectividade do banco
+│   ├── test_evolution.py  # Teste específico Evolution
+│   └── test_meta_ads.py   # Teste específico Meta Ads
+├── src/                    # Frontend React
+│   ├── components/        # Componentes reutilizáveis
+│   │   ├── KpiCard.tsx   # Card de KPIs com gráfico
+│   │   └── StatusBar.tsx # Barra de status do sistema
+│   ├── image/            # Assets de imagens
+│   │   └── logo.png      # Logo da aplicação
+│   ├── lib/              # Utilitários e configurações
+│   │   ├── api.ts        # Cliente HTTP e endpoints
+│   │   ├── format.ts     # Formatação de números/moeda
+│   │   └── systems.ts    # Configuração dos sistemas
+│   ├── pages/            # Páginas da aplicação
+│   │   ├── EvolutionDetail.tsx   # Detalhes Evolution API
+│   │   ├── GoogleAdsDetail.tsx   # Detalhes Google Ads
 │   │   ├── MetaAdsDetail.tsx     # Detalhes Meta Ads
 │   │   ├── N8nDetail.tsx         # Detalhes N8N
 │   │   └── PiperunDetail.tsx     # Detalhes PipeRun
-│   ├── lib/                # Utilitários e configurações
-│   │   ├── api.ts          # Cliente HTTP e endpoints
-│   │   ├── format.ts       # Formatação de números/moeda
-│   │   └── systems.ts      # Configuração dos sistemas
-│   ├── App.tsx             # Componente principal
-│   ├── main.tsx           # Ponto de entrada React
-│   ├── index.css          # Estilos globais
-│   └── types.ts           # Definições TypeScript
-├── docker-compose.yml      # Orchestração Docker
-├── Dockerfile             # Imagem Docker frontend
-├── package.json           # Dependências Node.js
-└── vite.config.ts        # Configuração Vite
+│   ├── App.tsx           # Componente principal da aplicação
+│   ├── index.css         # Estilos globais e Tailwind
+│   ├── main.tsx          # Ponto de entrada React
+│   └── types.ts          # Definições TypeScript
+└── node_modules/         # Dependências Node.js instaladas
 ```
 
 ## 🔧 Sistemas Integrados
@@ -232,9 +256,18 @@ graph TD
 ### Pré-requisitos
 
 - Node.js 18+
-- Python 3.13+
+- Python 3.13+ (com suporte a versões 3.12+)
 - PostgreSQL 12+
 - Git
+
+### Ambientes Virtuais Python
+
+O projeto possui ambientes virtuais Python em duas localizações:
+
+- **Raiz do projeto**: `.venv/` (ambiente compartilhado)
+- **Backend específico**: `backend/.venv/` (ambiente isolado para o backend)
+
+Recomenda-se usar o ambiente virtual do backend para desenvolvimento:
 
 ### Backend Setup
 
@@ -242,6 +275,21 @@ graph TD
 cd backend
 pip install -r requirements.txt
 python -m uvicorn main:app --host 127.0.0.1 --port 8002 --reload
+```
+
+### Testes de Conectividade
+
+O projeto inclui arquivos de teste para verificar a conectividade com o banco de dados:
+
+```bash
+# Teste geral do banco de dados
+python backend/test_db.py
+
+# Teste específico do sistema Evolution
+python backend/test_evolution.py
+
+# Teste específico do sistema Meta Ads
+python backend/test_meta_ads.py
 ```
 
 ### Frontend Setup
@@ -268,6 +316,32 @@ DB_PASSWORD = "mkt2024"
 ```bash
 VITE_API_BASE_URL=http://127.0.0.1:8002
 ```
+
+#### Arquivo de Exemplo (`.env.example`)
+
+```bash
+VITE_API_BASE_URL=
+```
+
+### Arquivos de Configuração Importantes
+
+#### `.gitignore`
+
+```ignore
+node_modules/
+```
+
+#### `postcss.config.js`
+
+Configuração do PostCSS para processamento CSS com Tailwind.
+
+#### `tailwind.config.js`
+
+Configuração do Tailwind CSS com temas personalizados e responsive design.
+
+#### `tsconfig.json` e `tsconfig.node.json`
+
+Configurações TypeScript para o projeto principal e para Node.js respectivamente.
 
 ## 🎯 Funcionalidades Específicas
 
@@ -424,6 +498,20 @@ taskkill /PID <PID> /F
 - Problema resolvido com formatação UTC
 - Usar `new Date(date + 'T00:00:00')`
 
+#### 5. Cache Python
+
+O diretório `__pycache__/` contém arquivos compilados Python (.pyc):
+
+```bash
+# Limpar cache se necessário
+rm -rf backend/__pycache__/
+```
+
+### Arquivos de Cache Identificados
+
+- `config.cpython-312.pyc` / `config.cpython-313.pyc`
+- `main.cpython-312.pyc` / `main.cpython-313.pyc`
+
 ## 📈 Roadmap e Melhorias
 
 ### Funcionalidades Planejadas
@@ -444,9 +532,10 @@ taskkill /PID <PID> /F
 - [ ] CDN para assets estáticos
 
 ## 👥 Desenvolvedor e Contato
-- **Giulliano Veiga**: 
--    https://www.instagram.com/giullianoveiga 
--    https://www.linkedin.com/in/giulliano-veiga
+
+- **Giulliano Veiga**:
+- https://www.instagram.com/giullianoveiga
+- https://www.linkedin.com/in/giulliano-veiga
 
 ### Desenvolvimento
 
