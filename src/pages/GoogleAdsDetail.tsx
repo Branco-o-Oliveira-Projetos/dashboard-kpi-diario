@@ -9,6 +9,7 @@ interface GoogleAdsData {
   ref_date: string
   account_id: string
   account_name: string
+  campaign_name: string
   cost: number
   leads: number
   clicks: number
@@ -331,13 +332,14 @@ export default function GoogleAdsDetail() {
         transition={{ duration: 0.6, delay: 1.0 }}
         whileHover={{ y: -2 }}
       >
-        <h3 className="text-sm sm:text-lg font-semibold text-text mb-3 sm:mb-4">Todas as Contas</h3>
+        <h3 className="text-sm sm:text-lg font-semibold text-text mb-3 sm:mb-4">Todas as Contas e Campanhas</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-bg2">
                 <th className="text-left p-2">Data</th>
                 <th className="text-left p-2">Conta</th>
+                <th className="text-left p-2">Campanha</th>
                 <th className="text-right p-2">Custo</th>
                 <th className="text-right p-2">Leads</th>
                 <th className="text-right p-2">Clicks</th>
@@ -363,6 +365,9 @@ export default function GoogleAdsDetail() {
                   <td className="p-2">{new Date(record.ref_date + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
                   <td className="p-2 truncate max-w-[150px]" title={record.account_name}>
                     {record.account_name}
+                  </td>
+                  <td className="p-2 truncate max-w-[200px]" title={record.campaign_name || 'N/A'}>
+                    {record.campaign_name || 'N/A'}
                   </td>
                   <td className="p-2 text-right">{fmtMoney(record.cost)}</td>
                   <td className="p-2 text-right">{fmtNum(record.leads)}</td>
