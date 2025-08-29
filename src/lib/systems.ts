@@ -15,7 +15,7 @@ export const SYSTEMS: Record<SystemKey, SystemDef> = {
   ti: { title: 'T.I (Chamados)', labels: ['Abertos', 'Em andamento', 'Resolvidos'], chartType: 'bar' },
   liderhub: { title: 'Liderhub (Atendimentos)', labels: ['Aguardando', 'Em andamento', 'Finalizadas'], chartType: 'bar' },
   n8n: { title: 'N8N (Execuções)', labels: ['Fluxos', 'Sucesso', 'Falhas', 'AVG'], chartType: 'bar' },
-  evolution: { title: 'Evolution (Usuários)', labels: ['Instâncias', 'Mensagens Enviadas', 'Tempo Médio de Resposta', 'Não Lidas'], chartType: 'bar' }
+  evolution: { title: 'Evolution (Instâncias)', labels: ['Instâncias Ativas', 'Instâncias Inativas', 'Mensagens Enviadas', 'Tempo Médio (min)', 'Total Instâncias'], chartType: 'bar' }
 }
 
 export const SYSTEM_ORDER: SystemKey[] = [

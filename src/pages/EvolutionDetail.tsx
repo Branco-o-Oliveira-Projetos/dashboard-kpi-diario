@@ -15,33 +15,17 @@ interface EvolutionData {
   update_at: string
   instance_status: string
   conn_state_current: string
-  conn_uptime_pct: number
-  conn_reconnections: number
-  conn_last_change_at: string
   messages_sent_total: number
-  messages_sent_text: number
-  messages_sent_media: number
-  delivery_rate_pct: number
+  client_messages: number
+  response_messages: number
+  delivered_message: number
+  read_for_client: number
+  delivered_rate_pct: number
   read_rate_pct: number
-  latency_send_to_deliver_avg_ms: number
-  latency_send_to_deliver_p95_ms: number
-  latency_send_to_read_avg_ms: number
-  latency_send_to_read_p95_ms: number
-  errors_total: number
-  errors_4xx: number
-  errors_5xx: number
-  retry_attempts: number
-  retry_rate_pct: number
-  errors_by_code: any
   chats_active: number
-  chats_new: number
-  inbound_messages_total: number
-  frt_avg_seconds: number
-  frt_p90_seconds: number
-  sla_target_minutes: number
-  sla_within_pct: number
-  unread_total: number
-  unread_by_operator: any
+  total_chats: number
+  frt_seconds: number
+  frt_avg_minutes: number
   chats_no_response_over_threshold: number
   response_threshold_minutes: number
 }
@@ -143,36 +127,39 @@ export default function EvolutionDetail() {
     
     if (existing) {
       existing.messages_sent_total += item.messages_sent_total
-      existing.messages_sent_text += item.messages_sent_text
-      existing.messages_sent_media += item.messages_sent_media
-      existing.inbound_messages_total += item.inbound_messages_total
+      existing.client_messages += item.client_messages
+      existing.response_messages += item.response_messages
+      existing.delivered_message += item.delivered_message
       existing.chats_active += item.chats_active
-      existing.chats_new += item.chats_new
-      existing.unread_total += item.unread_total
-      existing.errors_total += item.errors_total
-      existing.delivery_rate_pct = (existing.delivery_rate_pct + item.delivery_rate_pct) / 2
+      existing.total_chats += item.total_chats
+      // Adicionar instância única à lista se não existir
+      if (!existing.instances.includes(item.instance_name)) {
+        existing.instances.push(item.instance_name)
+      }
+      existing.delivered_rate_pct = (existing.delivered_rate_pct + item.delivered_rate_pct) / 2
       existing.read_rate_pct = (existing.read_rate_pct + item.read_rate_pct) / 2
-      existing.frt_avg_seconds = (existing.frt_avg_seconds + item.frt_avg_seconds) / 2
-      existing.conn_uptime_pct = (existing.conn_uptime_pct + item.conn_uptime_pct) / 2
+      existing.frt_avg_minutes = (existing.frt_avg_minutes + item.frt_avg_minutes) / 2
     } else {
       acc.push({
         date,
         messages_sent_total: item.messages_sent_total,
-        messages_sent_text: item.messages_sent_text,
-        messages_sent_media: item.messages_sent_media,
-        inbound_messages_total: item.inbound_messages_total,
+        client_messages: item.client_messages,
+        response_messages: item.response_messages,
+        delivered_message: item.delivered_message,
         chats_active: item.chats_active,
-        chats_new: item.chats_new,
-        unread_total: item.unread_total,
-        errors_total: item.errors_total,
-        delivery_rate_pct: item.delivery_rate_pct,
+        total_chats: item.total_chats,
+        instances: [item.instance_name], // Array com instâncias únicas
+        delivered_rate_pct: item.delivered_rate_pct,
         read_rate_pct: item.read_rate_pct,
-        frt_avg_seconds: item.frt_avg_seconds,
-        conn_uptime_pct: item.conn_uptime_pct
+        frt_avg_minutes: item.frt_avg_minutes
       })
     }
     return acc
   }, [] as any[]).slice(0, 30).reverse()
+
+  // Calcular total de instâncias únicas
+  const uniqueInstances = [...new Set(records.map(record => record.instance_name))]
+  const totalInstances = uniqueInstances.length
 
   return (
     <div className="min-h-screen w-full mx-auto px-4 py-6 max-w-full">
@@ -253,8 +240,8 @@ export default function EvolutionDetail() {
           transition={{ duration: 0.6, delay: 0.7 }}
           whileHover={{ y: -2, scale: 1.02 }}
         >
-          <div className="text-sm sm:text-lg lg:text-xl font-bold text-blue-400">{fmtNum(latestData.inbound_messages_total)}</div>
-          <div className="text-xs text-text2">Msgs Recebidas</div>
+          <div className="text-sm sm:text-lg lg:text-xl font-bold text-blue-400">{fmtNum(latestData.client_messages)}</div>
+          <div className="text-xs text-text2">Msgs Clientes</div>
         </motion.div>
         
         <motion.div 
@@ -275,8 +262,8 @@ export default function EvolutionDetail() {
           transition={{ duration: 0.6, delay: 0.9 }}
           whileHover={{ y: -2, scale: 1.02 }}
         >
-          <div className="text-sm sm:text-lg lg:text-xl font-bold text-orange-400">{fmtNum(latestData.unread_total)}</div>
-          <div className="text-xs text-text2">Não Lidas</div>
+          <div className="text-sm sm:text-lg lg:text-xl font-bold text-purple-400">{fmtNum(totalInstances)}</div>
+          <div className="text-xs text-text2">Total Instâncias</div>
         </motion.div>
         
         <motion.div 
@@ -286,7 +273,7 @@ export default function EvolutionDetail() {
           transition={{ duration: 0.6, delay: 1.0 }}
           whileHover={{ y: -2, scale: 1.02 }}
         >
-          <div className="text-sm sm:text-lg lg:text-xl font-bold text-text">{latestData.delivery_rate_pct?.toFixed(1)}%</div>
+          <div className="text-sm sm:text-lg lg:text-xl font-bold text-text">{latestData.delivered_rate_pct?.toFixed(1)}%</div>
           <div className="text-xs text-text2">Taxa Entrega</div>
         </motion.div>
         
@@ -297,8 +284,8 @@ export default function EvolutionDetail() {
           transition={{ duration: 0.6, delay: 1.1 }}
           whileHover={{ y: -2, scale: 1.02 }}
         >
-          <div className="text-sm sm:text-lg lg:text-xl font-bold text-text">{fmtNum(latestData.frt_avg_seconds)}s</div>
-          <div className="text-xs text-text2">Tempo Resposta</div>
+          <div className="text-sm sm:text-lg lg:text-xl font-bold text-text">{fmtNum(latestData.frt_avg_minutes)} min</div>
+          <div className="text-xs text-text2">Tempo Médio Resposta</div>
         </motion.div>
       </div>
 
@@ -415,9 +402,9 @@ export default function EvolutionDetail() {
                   }}
                   formatter={(value: number) => [`${value.toFixed(1)}%`, 'Taxa de Entrega']}
                 />
-                <Line type="monotone" dataKey="delivery_rate_pct" stroke="#F59E0B" strokeWidth={2}>
+                <Line type="monotone" dataKey="delivered_rate_pct" stroke="#F59E0B" strokeWidth={2}>
                   <LabelList 
-                    dataKey="delivery_rate_pct" 
+                    dataKey="delivered_rate_pct" 
                     position="top" 
                     formatter={(value: number) => `${value.toFixed(1)}%`}
                     style={{ fill: '#F59E0B', fontSize: '10px', fontWeight: 'bold' }}
@@ -455,13 +442,13 @@ export default function EvolutionDetail() {
                     const date = new Date(value + 'T00:00:00')
                     return date.toLocaleDateString('pt-BR')
                   }}
-                  formatter={(value: number) => [`${value.toFixed(1)}s`, 'Tempo Médio']}
+                  formatter={(value: number) => [`${value.toFixed(1)}m`, 'Tempo Médio']}
                 />
-                <Bar dataKey="frt_avg_seconds" fill="#EF4444" radius={4}>
+                <Bar dataKey="frt_avg_minutes" fill="#EF4444" radius={4}>
                   <LabelList 
-                    dataKey="frt_avg_seconds" 
+                    dataKey="frt_avg_minutes" 
                     position="top" 
-                    formatter={(value: number) => `${value.toFixed(1)}s`}
+                    formatter={(value: number) => `${value.toFixed(1)}m`}
                     style={{ fill: '#EF4444', fontSize: '10px', fontWeight: 'bold' }}
                   />
                 </Bar>
@@ -488,11 +475,10 @@ export default function EvolutionDetail() {
                 <th className="text-left p-2">Instância</th>
                 <th className="text-left p-2">Status</th>
                 <th className="text-right p-2">Msgs Enviadas</th>
-                <th className="text-right p-2">Msgs Recebidas</th>
+                <th className="text-right p-2">Msgs Clientes</th>
                 <th className="text-right p-2">Chats Ativos</th>
-                <th className="text-right p-2">Não Lidas</th>
                 <th className="text-right p-2">Taxa Entrega</th>
-                <th className="text-right p-2">Uptime</th>
+                <th className="text-right p-2">Taxa Leitura</th>
                 <th className="text-right p-2">Atualização</th>
               </tr>
             </thead>
@@ -523,11 +509,10 @@ export default function EvolutionDetail() {
                     </span>
                   </td>
                   <td className="p-2 text-right text-green-400">{fmtNum(record.messages_sent_total)}</td>
-                  <td className="p-2 text-right text-blue-400">{fmtNum(record.inbound_messages_total)}</td>
+                  <td className="p-2 text-right text-blue-400">{fmtNum(record.client_messages)}</td>
                   <td className="p-2 text-right">{fmtNum(record.chats_active)}</td>
-                  <td className="p-2 text-right text-orange-400">{fmtNum(record.unread_total)}</td>
-                  <td className="p-2 text-right">{record.delivery_rate_pct?.toFixed(1)}%</td>
-                  <td className="p-2 text-right">{record.conn_uptime_pct?.toFixed(1)}%</td>
+                  <td className="p-2 text-right">{record.delivered_rate_pct?.toFixed(1)}%</td>
+                  <td className="p-2 text-right">{record.read_rate_pct?.toFixed(1)}%</td>
                   <td className="p-2 text-right text-text2">
                     {new Date(record.update_at).toLocaleString('pt-BR')}
                   </td>

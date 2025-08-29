@@ -145,16 +145,16 @@ SISTEMAS_DB = {
         'filtro_val': '',
         'date_col': 'ref_date',
         'updated_col': 'update_at',
-        'kpi_cols': ['conn_state_open', 'conn_state_not_open', 'messages_sent_total', 'frt_avg_seconds', 'unread_total'],
-        'chart_col': 'unread_total',
+        'kpi_cols': ['conn_state_open', 'conn_state_not_open', 'messages_sent_total', 'frt_avg_minutes', 'total_instances'],
+        'chart_col': 'messages_sent_total',
         'kpi_query_type': 'custom',
         'custom_kpi_query': """
             SELECT 
                 COUNT(CASE WHEN conn_state_current = 'open' THEN 1 END) as conn_state_open,
                 COUNT(CASE WHEN conn_state_current != 'open' THEN 1 END) as conn_state_not_open,
                 SUM(messages_sent_total) as messages_sent_total,
-                AVG(frt_avg_seconds) as frt_avg_seconds,
-                SUM(unread_total) as unread_total,
+                AVG(frt_avg_minutes) as frt_avg_minutes,
+                COUNT(*) as total_instances,
                 MAX({updated_col}) as updated_at
             FROM {schema}.{tabela}
             WHERE {date_col} = (
@@ -163,7 +163,14 @@ SISTEMAS_DB = {
             )
             {and_filter}
         """,
-        'series_aggregation': 'SUM'
+        'series_aggregation': 'SUM',
+        'custom_series_query': """
+            SELECT {date_col}, COUNT(*) as value_sum
+            FROM {schema}.{tabela}
+            GROUP BY {date_col}
+            ORDER BY {date_col} DESC
+            LIMIT 14
+        """
     },
 }
 
@@ -221,6 +228,24 @@ def build_kpi_query(config: Dict[str, Any]) -> str:
 
 def build_series_query(config: Dict[str, Any]) -> str:
     """Constrói a query de série temporal baseada na configuração do sistema"""
+    
+    # Se tem query customizada para série, usa ela
+    if 'custom_series_query' in config:
+        schema = config['schema']
+        tabela = config['tabela']
+        date_col = config['date_col']
+        filtro_col = config['filtro_col']
+        
+        where_filter = f"WHERE {filtro_col} = %s" if filtro_col else ""
+        
+        return config['custom_series_query'].format(
+            schema=schema,
+            tabela=tabela,
+            date_col=date_col,
+            where_filter=where_filter
+        )
+    
+    # Caso contrário, usa a lógica padrão
     schema = config['schema']
     tabela = config['tabela']
     date_col = config['date_col']
