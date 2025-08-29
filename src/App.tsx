@@ -12,8 +12,8 @@ const Logo = "https://s3.automacoesbeo.xyz/logos-empresas/Grupo_B_O.png";
 const CARDS_PER_PAGE = 3; // Aumentado para melhor uso do espaço
 
 function App() {
-  // Estado para controle do auto-refresh dos dados
-  const [autoRefresh, setAutoRefresh] = useState(true);
+  // Auto-refresh sempre ativo
+  const autoRefresh = true;
   // Estado para controle do ciclo de atualização
   const [cycle, setCycle] = useState(0);
   // Estado para controle da página do carrossel
@@ -58,7 +58,7 @@ function App() {
 
   return (
     <div className="min-h-screen w-full mx-auto px-4 py-6 max-w-full">
-      {/* Barra superior com logo, título e auto-refresh */}
+      {/* Barra superior com logo, título */}
       <motion.div 
         className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 mb-4 sm:mb-6"
         initial={{ opacity: 0, y: -20 }}
@@ -83,20 +83,6 @@ function App() {
           Dashboard com dados diários
         </motion.h2>
         <div className="flex-1" />
-        <motion.label 
-          className="text-sm flex items-center gap-2"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-        >
-          <input
-            type="checkbox"
-            checked={autoRefresh}
-            onChange={(e) => setAutoRefresh(e.target.checked)}
-            className="accent-primary"
-          />
-          Auto-refresh
-        </motion.label>
       </motion.div>
 
       {/* Barra de status com data/hora e ciclo */}
