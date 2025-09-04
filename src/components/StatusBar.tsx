@@ -54,7 +54,7 @@ export default function StatusBar({ cycle }: StatusBarProps) {
           <Link to="/piperun" className="hover:text-text transition-colors">PipeRun</Link>
           <a href="#" className="hover:text-text transition-colors hidden sm:inline">Conta Azul</a>
           <a href="#" className="hover:text-text transition-colors hidden sm:inline">CPJ-3C</a>
-          <a href="#" className="hover:text-text transition-colors hidden lg:inline">T.I</a>
+          <Link to="/ti" className="hover:text-text transition-colors hidden lg:inline">T.I</Link>
           <a href="#" className="hover:text-text transition-colors hidden lg:inline">Liderhub</a>
           <Link to="/n8n" className="hover:text-text transition-colors">N8N</Link>
           <a href="#" className="hover:text-text transition-colors hidden lg:inline">GitHub</a>

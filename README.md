@@ -35,15 +35,117 @@
 
 | Sistema           | Métricas                                    | Tipo de Gráfico |
 | ----------------- | ------------------------------------------- | --------------- |
-| **Meta Ads** 📢   | Custo, Leads, Cliques, CPL, CPC             | Linha           |
+| **Meta Ads** 📢   | Custo, Leads, Cliques, CPL, CPC             | Barras          |
 | **Google Ads** 🔍 | Custo, Leads, Cliques, CPL, CPC             | Barras          |
 | **PipeRun** 📈    | Oportunidades (Recebidas, Ganhas, Perdidas) | Barras          |
-| **N8N** 🔄        | Fluxos, Execuções, Falhas, Duração Média    | Linha           |
+| **N8N** 🔄        | Fluxos, Execuções, Falhas, Duração Média    | Barras          |
 | **Conta Azul** 💰 | Clientes Novos, A Receber, Recebidas        | Barras          |
 | **CPJ-3C** ⚖️     | Audiências, Perícias, Processos             | Barras          |
-| **Evolution** 📱  | Instâncias, Mensagens, Tempo Resposta       | Misto           |
+| **Evolution** 📱  | Instâncias, Mensagens, Tempo Resposta       | Barras          |
 
-## 🛠️ Tecnologias
+## � Incluindo um Novo Sistema
+
+Para incluir um novo sistema no dashboard, siga os passos abaixo. Cada sistema incluído deve obrigatoriamente ter sua própria página detalhada para visualização aprofundada dos dados.
+
+### 1️⃣ Configuração no Backend
+
+Edite o arquivo `backend/main.py` e adicione uma nova entrada no dicionário `SISTEMAS_DB`. Exemplo:
+
+```python
+'novo_sistema': {
+    'schema': 'kpi_tv',
+    'tabela': 'novo_sistema_daily',
+    'filtro_col': 'id_sistema',  # Coluna de filtro (opcional)
+    'filtro_val': 'valor_filtro',  # Valor do filtro (opcional)
+    'date_col': 'ref_date',
+    'updated_col': 'updated_at',
+    'kpi_cols': ['metrica1', 'metrica2', 'metrica3'],  # Colunas dos KPIs
+    'chart_col': 'metrica1',  # Coluna usada no gráfico
+    'kpi_query_type': 'single_row',  # 'single_row', 'aggregated' ou 'custom'
+    'series_aggregation': 'SUM'  # Função de agregação para séries
+}
+```
+
+**Tipos de Query:**
+
+- `single_row`: Pega a linha mais recente da tabela
+- `aggregated`: Aplica funções de agregação (SUM, AVG, etc.) nas colunas
+- `custom`: Usa uma query personalizada (defina `custom_kpi_query`)
+
+### 2️⃣ Criação da Página Detalhada
+
+Crie um novo arquivo em `src/pages/` seguindo o padrão dos existentes (ex: `NovoSistemaDetail.tsx`):
+
+```tsx
+import { useQuery } from "@tanstack/react-query";
+import { fetchDetailedData } from "../lib/api";
+// ... outros imports
+
+export default function NovoSistemaDetail() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["detailed", "novo_sistema"],
+    queryFn: () => fetchDetailedData("novo_sistema"),
+  });
+
+  // Implemente a visualização detalhada dos dados
+  return <div>{/* Seu componente detalhado */}</div>;
+}
+```
+
+### 3️⃣ Adição de Rota no Frontend
+
+Edite `src/App.tsx` para adicionar a nova rota:
+
+```tsx
+import NovoSistemaDetail from "./pages/NovoSistemaDetail";
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* ... rotas existentes */}
+        <Route path="/novo-sistema" element={<NovoSistemaDetail />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+```
+
+### 4️⃣ Atualização da Barra de Status
+
+Edite `src/components/StatusBar.tsx` para adicionar o link:
+
+```tsx
+<Link to="/novo-sistema" className="hover:text-text transition-colors">
+  Novo Sistema
+</Link>
+```
+
+### 5️⃣ Atualização de Tipos (se necessário)
+
+Se o novo sistema usar tipos específicos, atualize `src/types.ts`:
+
+```typescript
+export type SystemKey =
+  | "meta_ads"
+  | "google_ads"
+  | "piperun"
+  | "n8n"
+  | "conta_azul"
+  | "cpj3c"
+  | "evolution"
+  | "novo_sistema";
+```
+
+### 6️⃣ Teste e Validação
+
+Após implementar, teste:
+
+- A API retorna os dados corretos (`/api/kpis/novo_sistema`, `/api/series/novo_sistema`, `/api/detailed/novo_sistema`)
+- A página detalhada carrega corretamente
+- O link na barra de status funciona
+
+## �🛠️ Tecnologias
 
 ### Frontend
 

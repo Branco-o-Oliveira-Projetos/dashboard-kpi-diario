@@ -121,8 +121,8 @@ SISTEMAS_DB = {
         'filtro_val': '',
         'date_col': 'ref_date',
         'updated_col': 'updated_at',
-        'kpi_cols': ['abertos', 'andamento', 'resolvidos'],
-        'chart_col': 'resolvidos',
+        'kpi_cols': ['abertos', 'andamento', 'resolvidos_hoje'],
+        'chart_col': 'resolvidos_hoje',
         'kpi_query_type': 'single_row',
         'series_aggregation': 'SUM'
     },
