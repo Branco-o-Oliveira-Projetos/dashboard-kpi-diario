@@ -198,6 +198,13 @@ export default function EvolutionDetail() {
   const avgDeliveredRate = aggregatedKPIs.recordCount > 0 ? aggregatedKPIs.deliveredRateSum / aggregatedKPIs.recordCount : 0
   const avgFrtMinutes = aggregatedKPIs.recordCount > 0 ? aggregatedKPIs.frtAvgSum / aggregatedKPIs.recordCount : 0
 
+  // Calcular mensagens do dia atual
+  const today = new Date().toISOString().split('T')[0]
+  const todayRecords = records.filter(record => record.ref_date === today)
+  const todayMessagesSent = todayRecords.reduce((sum, record) => sum + record.messages_sent_total, 0)
+  const todayClientMessages = todayRecords.reduce((sum, record) => sum + record.client_messages, 0)
+  const todayChatsActive = todayRecords.reduce((sum, record) => sum + record.chats_active, 0)
+
   return (
     <div className="min-h-screen w-full mx-auto px-4 py-6 max-w-full">
       {/* Header */}
@@ -252,7 +259,7 @@ export default function EvolutionDetail() {
           <h3 className="text-sm sm:text-lg font-semibold text-text mb-4 text-center">Status da API em Tempo Real</h3>
           <ConnectionStatusAnimation />
           <div className="text-center text-text2 text-sm mt-4">
-            Instância ativa • {fmtNum(aggregatedKPIs.totalMessagesSent)} mensagens enviadas
+            Instância ativa • {fmtNum(todayMessagesSent)} mensagens enviadas hoje
           </div>
         </div>
       </motion.div>
@@ -266,8 +273,8 @@ export default function EvolutionDetail() {
           transition={{ duration: 0.6, delay: 0.6 }}
           whileHover={{ y: -2, scale: 1.02 }}
         >
-          <div className="text-sm sm:text-lg lg:text-xl font-bold text-green-400">{fmtNum(aggregatedKPIs.totalMessagesSent)}</div>
-          <div className="text-xs text-text2">Msgs Enviadas</div>
+          <div className="text-sm sm:text-lg lg:text-xl font-bold text-green-400">{fmtNum(todayMessagesSent)}</div>
+          <div className="text-xs text-text2">Msgs Enviadas Hoje</div>
         </motion.div>
         
         <motion.div 
@@ -277,8 +284,8 @@ export default function EvolutionDetail() {
           transition={{ duration: 0.6, delay: 0.7 }}
           whileHover={{ y: -2, scale: 1.02 }}
         >
-          <div className="text-sm sm:text-lg lg:text-xl font-bold text-blue-400">{fmtNum(aggregatedKPIs.totalClientMessages)}</div>
-          <div className="text-xs text-text2">Msgs Clientes</div>
+          <div className="text-sm sm:text-lg lg:text-xl font-bold text-blue-400">{fmtNum(todayClientMessages)}</div>
+          <div className="text-xs text-text2">Msgs Clientes Hoje</div>
         </motion.div>
         
         <motion.div 
@@ -288,8 +295,8 @@ export default function EvolutionDetail() {
           transition={{ duration: 0.6, delay: 0.8 }}
           whileHover={{ y: -2, scale: 1.02 }}
         >
-          <div className="text-sm sm:text-lg lg:text-xl font-bold text-purple-400">{fmtNum(aggregatedKPIs.totalChatsActive)}</div>
-          <div className="text-xs text-text2">Chats Ativos</div>
+          <div className="text-sm sm:text-lg lg:text-xl font-bold text-purple-400">{fmtNum(todayChatsActive)}</div>
+          <div className="text-xs text-text2">Chats Ativos Hoje</div>
         </motion.div>
         
         <motion.div 
@@ -359,9 +366,9 @@ export default function EvolutionDetail() {
                 <Bar dataKey="messages_sent_total" fill="#10B981" radius={4}>
                   <LabelList 
                     dataKey="messages_sent_total" 
-                    position="top" 
+                    position="center" 
                     formatter={(value: number) => fmtNum(value)}
-                    style={{ fill: '#10B981', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#050505', fontSize: '10px', fontWeight: 'bold' }}
                   />
                 </Bar>
               </BarChart>
@@ -484,9 +491,9 @@ export default function EvolutionDetail() {
                 <Bar dataKey="frt_avg_minutes" fill="#EF4444" radius={4}>
                   <LabelList 
                     dataKey="frt_avg_minutes" 
-                    position="top" 
+                    position="center" 
                     formatter={(value: number) => `${value.toFixed(1)}m`}
-                    style={{ fill: '#EF4444', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#050505', fontSize: '10px', fontWeight: 'bold' }}
                   />
                 </Bar>
               </BarChart>

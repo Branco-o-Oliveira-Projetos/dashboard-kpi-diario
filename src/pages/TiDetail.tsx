@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { Bar, BarChart, PieChart, Pie, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, PieChart, Pie, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis, LabelList } from 'recharts'
 import { fetchDetailedData } from '../lib/api'
 import { fmtNum } from '../lib/format'
 import { Link } from 'react-router-dom'
@@ -103,20 +103,44 @@ export default function TiDetail() {
 
   return (
     <div className="min-h-screen bg-bg p-4 sm:p-6 lg:p-8">
-      {/* Header com navegação */}
+      {/* Header */}
       <motion.div 
         className="mb-6"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <Link 
-          to="/" 
-          className="inline-flex items-center text-text2 hover:text-text transition-colors mb-4"
+        <motion.h1 
+          className="text-3xl font-bold text-text mb-2 flex items-center gap-3"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
         >
-          ← Voltar ao Dashboard
-        </Link>
-        <h1 className="text-2xl sm:text-3xl font-bold text-text">Detalhes do Sistema T.I</h1>
+          T.I - Detalhes
+        </motion.h1>
+        <motion.p 
+          className="text-text2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          Monitoramento detalhado de chamados e SLA do sistema de T.I
+        </motion.p>
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <Link to="/" className="text-blue-400 hover:underline mt-2 inline-block group">
+            <motion.span
+              className="inline-flex items-center"
+              whileHover={{ x: -5 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              ← Voltar ao Dashboard
+            </motion.span>
+          </Link>
+        </motion.div>
       </motion.div>
 
       {/* Animação de chamados */}
@@ -131,7 +155,7 @@ export default function TiDetail() {
 
       {/* Métricas principais */}
       <motion.div 
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.4 }}
@@ -165,6 +189,16 @@ export default function TiDetail() {
             {lastRecord ? fmtNum(lastRecord.resolvidos_hoje) : 0}
           </div>
         </motion.div>
+
+        <motion.div 
+          className="card"
+          whileHover={{ y: -2 }}
+        >
+          <h3 className="text-lg font-semibold text-text mb-2">Tempo Médio</h3>
+          <div className="text-3xl font-bold text-purple-400">
+            {lastRecord ? lastRecord.avg_min : '0'} min
+          </div>
+        </motion.div>
       </motion.div>
 
       {/* Gráficos */}
@@ -190,9 +224,30 @@ export default function TiDetail() {
                 labelFormatter={(value) => new Date(value).toLocaleDateString('pt-BR')}
                 formatter={(value: number, name: string) => [fmtNum(value), name]}
               />
-              <Bar dataKey="abertos" fill="#3B82F6" name="Abertos" />
-              <Bar dataKey="andamento" fill="#F59E0B" name="Em Andamento" />
-              <Bar dataKey="resolvidos_hoje" fill="#10B981" name="Resolvidos Hoje" />
+              <Bar dataKey="abertos" fill="#3B82F6" name="Abertos" radius={4}>
+                <LabelList 
+                  dataKey="abertos" 
+                  position="top" 
+                  formatter={(value: number) => fmtNum(value)}
+                  style={{ fill: '#3B82F6', fontSize: '10px', fontWeight: 'bold' }}
+                />
+              </Bar>
+              <Bar dataKey="andamento" fill="#F59E0B" name="Em Andamento" radius={4}>
+                <LabelList 
+                  dataKey="andamento" 
+                  position="top" 
+                  formatter={(value: number) => fmtNum(value)}
+                  style={{ fill: '#F59E0B', fontSize: '10px', fontWeight: 'bold' }}
+                />
+              </Bar>
+              <Bar dataKey="resolvidos_hoje" fill="#10B981" name="Resolvidos Hoje" radius={4}>
+                <LabelList 
+                  dataKey="resolvidos_hoje" 
+                  position="top" 
+                  formatter={(value: number) => fmtNum(value)}
+                  style={{ fill: '#10B981', fontSize: '10px', fontWeight: 'bold' }}
+                />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </motion.div>
