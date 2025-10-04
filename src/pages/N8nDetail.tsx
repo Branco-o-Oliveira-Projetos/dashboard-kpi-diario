@@ -413,7 +413,7 @@ export default function N8nDetail() {
                     dataKey="flows_total" 
                     position="top" 
                     formatter={(value: number) => fmtNum(value)}
-                    style={{ fill: '#0F172A', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#FFFFFF', fontSize: '10px', fontWeight: 'bold' }}
                   />
                   <motion.g
                     animate={{
@@ -496,13 +496,13 @@ export default function N8nDetail() {
                   stroke="#EC4899" 
                   strokeWidth={3} 
                   name="runs_failed"
-                  dot={{ fill: '#EC4899', strokeWidth: 2, r: 4 }}
+                  dot={{ fill: '#F87171', strokeWidth: 2, r: 4 }}
                 >
                   <LabelList 
                     dataKey="runs_failed" 
                     position="top" 
                     formatter={(value: number) => fmtNum(value)}
-                    style={{ fill: '#EC4899', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#F87171', fontSize: '10px', fontWeight: 'bold' }}
                     offset={10}
                   />
                 </Line>
@@ -551,12 +551,12 @@ export default function N8nDetail() {
                   }}
                   formatter={(value: number) => [`${value.toFixed(1)}%`, 'Taxa de Sucesso']}
                 />
-                <Line type="monotone" dataKey="success_rate" stroke="#A855F7" strokeWidth={2}>
+                <Line type="monotone" dataKey="success_rate" stroke="#22D3EE" strokeWidth={2}>
                   <LabelList 
                     dataKey="success_rate" 
                     position="top" 
                     formatter={(value: number) => `${value.toFixed(1)}%`}
-                    style={{ fill: '#A855F7', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#FFFFFF', fontSize: '10px', fontWeight: 'bold' }}
                     offset={10}
                   />
                 </Line>
@@ -610,7 +610,7 @@ export default function N8nDetail() {
                     dataKey="avg_duration_sec" 
                     position="top" 
                     formatter={(value: number) => `${value.toFixed(1)}s`}
-                    style={{ fill: '#0F172A', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#FFFFFF', fontSize: '10px', fontWeight: 'bold' }}
                   />
                 </Bar>
               </BarChart>

@@ -193,7 +193,7 @@ export default function GoogleAdsDetail() {
                     dataKey="cost" 
                     position="top" 
                     formatter={(value: number) => fmtMoney(value)}
-                    style={{ fill: '#0F172A', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#FFFFFF', fontSize: '10px', fontWeight: 'bold' }}
                   />
                 </Bar>
               </BarChart>
@@ -234,7 +234,7 @@ export default function GoogleAdsDetail() {
                     dataKey="leads" 
                     position="top" 
                     formatter={(value: number) => fmtNum(value)}
-                    style={{ fill: '#22D3EE', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#FFFFFF', fontSize: '10px', fontWeight: 'bold' }}
                     offset={10}
                   />
                 </Line>
@@ -276,7 +276,7 @@ export default function GoogleAdsDetail() {
                     dataKey="clicks" 
                     position="top" 
                     formatter={(value: number) => fmtNum(value)}
-                    style={{ fill: '#0F172A', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#FFFFFF', fontSize: '10px', fontWeight: 'bold' }}
                   />
                 </Bar>
               </BarChart>
@@ -317,7 +317,7 @@ export default function GoogleAdsDetail() {
                     dataKey="impressions" 
                     position="top" 
                     formatter={(value: number) => fmtNum(value)}
-                    style={{ fill: '#0F172A', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#FFFFFF', fontSize: '10px', fontWeight: 'bold' }}
                   />
                 </Bar>
               </BarChart>

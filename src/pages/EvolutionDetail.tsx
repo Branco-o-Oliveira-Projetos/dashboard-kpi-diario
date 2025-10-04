@@ -366,9 +366,9 @@ export default function EvolutionDetail() {
                 <Bar dataKey="messages_sent_total" fill="#22D3EE" radius={4}>
                   <LabelList 
                     dataKey="messages_sent_total" 
-                    position="center" 
+                    position="top" 
                     formatter={(value: number) => fmtNum(value)}
-                    style={{ fill: '#0F172A', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#FFFFFF', fontSize: '10px', fontWeight: 'bold' }}
                   />
                 </Bar>
               </BarChart>
@@ -404,12 +404,12 @@ export default function EvolutionDetail() {
                   }}
                   formatter={(value: number) => [fmtNum(value), 'Chats']}
                 />
-                <Line type="monotone" dataKey="chats_active" stroke="#A855F7" strokeWidth={2}>
+                <Line type="monotone" dataKey="chats_active" stroke="#22D3EE" strokeWidth={2}>
                   <LabelList 
                     dataKey="chats_active" 
                     position="top" 
                     formatter={(value: number) => fmtNum(value)}
-                    style={{ fill: '#A855F7', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#FFFFFF', fontSize: '10px', fontWeight: 'bold' }}
                     offset={10}
                   />
                 </Line>
@@ -451,7 +451,7 @@ export default function EvolutionDetail() {
                     dataKey="delivered_rate_pct" 
                     position="top" 
                     formatter={(value: number) => `${value.toFixed(1)}%`}
-                    style={{ fill: '#06B6D4', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#FFFFFF', fontSize: '10px', fontWeight: 'bold' }}
                     offset={10}
                   />
                 </Line>
@@ -488,12 +488,12 @@ export default function EvolutionDetail() {
                   }}
                   formatter={(value: number) => [`${value.toFixed(1)}m`, 'Tempo Médio']}
                 />
-                <Bar dataKey="frt_avg_minutes" fill="#EC4899" radius={4}>
+                <Bar dataKey="frt_avg_minutes" fill="#22D3EE" radius={4}>
                   <LabelList 
                     dataKey="frt_avg_minutes" 
-                    position="center" 
+                    position="top" 
                     formatter={(value: number) => `${value.toFixed(1)}m`}
-                    style={{ fill: '#0F172A', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#FFFFFF', fontSize: '10px', fontWeight: 'bold' }}
                   />
                 </Bar>
               </BarChart>
@@ -544,11 +544,13 @@ export default function EvolutionDetail() {
                     {record.instance_name}
                   </td>
                   <td className="p-2">
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      record.conn_state_current === 'open' 
-                        ? 'bg-green-500/20 text-green-400' 
-                        : 'bg-neonPink/20 text-neonPink'
-                    }`}>
+                    <span
+                      className={`px-2 py-1 rounded text-xs ${
+                        record.conn_state_current === 'open'
+                          ? 'bg-green-500/20 text-green-400'
+                          : 'bg-[#F87171]/20 text-[#F87171]'
+                      }`}
+                    >
                       {record.conn_state_current}
                     </span>
                   </td>

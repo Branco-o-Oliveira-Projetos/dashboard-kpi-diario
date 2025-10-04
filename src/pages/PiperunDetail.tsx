@@ -342,7 +342,7 @@ export default function PiperunDetail() {
                         ]}
                       />
                       <Line type="monotone" dataKey="ganhas" stroke="#06B6D4" strokeWidth={2} name="ganhas" />
-                      <Line type="monotone" dataKey="perdidas" stroke="#EC4899" strokeWidth={2} name="perdidas" />
+                      <Line type="monotone" dataKey="perdidas" stroke="#f87171" strokeWidth={2} name="perdidas" />
                     </LineChart>
                   </ResponsiveContainer>
                 </motion.div>
@@ -380,7 +380,7 @@ export default function PiperunDetail() {
                         }}
                         formatter={(value: number) => [`${value.toFixed(1)}%`, 'Taxa de Conversão']}
                       />
-                      <Line type="monotone" dataKey="taxa" stroke="#A855F7" strokeWidth={2} />
+                      <Line type="monotone" dataKey="taxa" stroke="#71F871" strokeWidth={2} />
                     </LineChart>
                   </ResponsiveContainer>
                 </motion.div>

@@ -245,7 +245,7 @@ export default function TiDetail() {
                   dataKey="resolvidos_hoje" 
                   position="top" 
                   formatter={(value: number) => fmtNum(value)}
-                  style={{ fill: '#0F172A', fontSize: '10px', fontWeight: 'bold' }}
+                  style={{ fill: '#FFFFFF', fontSize: '10px', fontWeight: 'bold' }}
                 />
               </Bar>
             </BarChart>
