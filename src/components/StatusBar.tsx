@@ -28,20 +28,20 @@ export default function StatusBar({ cycle }: StatusBarProps) {
 
   return (
     <motion.div 
-      className="bg-bg2 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 text-xs sm:text-sm text-text2"
+      className="bg-white/5 border border-white/10 backdrop-blur-sm rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 text-xs sm:text-sm text-text2 shadow-lg shadow-black/30"
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
         <motion.span 
-          className="whitespace-nowrap"
+          className="whitespace-nowrap text-neonAqua font-medium"
           animate={{ opacity: [0.5, 1, 0.5] }}
           transition={{ duration: 2, repeat: Infinity }}
         >
-          🔄 3 min • #{cycle}
+          Auto refresh 3 min | ciclo #{cycle}
         </motion.span>
       
-      {/* Links para páginas detalhadas */}
+      {/* Links para pÃ¡ginas detalhadas */}
       <motion.div 
         className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto"
         initial={{ opacity: 0, x: 20 }}
@@ -49,20 +49,28 @@ export default function StatusBar({ cycle }: StatusBarProps) {
         transition={{ duration: 0.5, delay: 0.2 }}
       >
         <nav className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm">
-          <Link to="/meta-ads" className="hover:text-text transition-colors whitespace-nowrap">Meta Ads</Link>
-          <Link to="/google-ads" className="hover:text-text transition-colors whitespace-nowrap">Google Ads</Link>
-          <Link to="/piperun" className="hover:text-text transition-colors">PipeRun</Link>
-          <a href="#" className="hover:text-text transition-colors hidden sm:inline">Conta Azul</a>
-          <a href="#" className="hover:text-text transition-colors hidden sm:inline">CPJ-3C</a>
-          <Link to="/ti" className="hover:text-text transition-colors hidden lg:inline">T.I</Link>
-          <a href="#" className="hover:text-text transition-colors hidden lg:inline">Liderhub</a>
-          <Link to="/n8n" className="hover:text-text transition-colors">N8N</Link>
-          <a href="#" className="hover:text-text transition-colors hidden lg:inline">GitHub</a>
-          <Link to="/evolution" className="hover:text-text transition-colors">Evolution</Link>
-          <a href="#" className="hover:text-text transition-colors hidden lg:inline">Portainer</a>
-          <a href="#" className="hover:text-text transition-colors hidden lg:inline">RH</a>
+          <Link to="/meta-ads" className="hover:text-neonAqua transition-colors whitespace-nowrap">Meta Ads</Link>
+          <Link to="/google-ads" className="hover:text-neonAqua transition-colors whitespace-nowrap">Google Ads</Link>
+          <Link to="/piperun" className="hover:text-neonAqua transition-colors">PipeRun</Link>
+          <a href="#" className="hover:text-neonAqua transition-colors hidden sm:inline">Conta Azul</a>
+          <a href="#" className="hover:text-neonAqua transition-colors hidden sm:inline">CPJ-3C</a>
+          <Link to="/ti" className="hover:text-neonAqua transition-colors hidden lg:inline">T.I</Link>
+          <a href="#" className="hover:text-neonAqua transition-colors hidden lg:inline">Liderhub</a>
+          <Link to="/n8n" className="hover:text-neonAqua transition-colors">N8N</Link>
+          <a href="#" className="hover:text-neonAqua transition-colors hidden lg:inline">GitHub</a>
+          <Link to="/evolution" className="hover:text-neonAqua transition-colors">Evolution</Link>
+          <a href="#" className="hover:text-neonAqua transition-colors hidden lg:inline">Portainer</a>
+          <a href="#" className="hover:text-neonAqua transition-colors hidden lg:inline">RH</a>
         </nav>
       </motion.div>
+      <motion.span
+        className="text-sm sm:text-base text-text font-semibold whitespace-nowrap"
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+      >
+        {formattedTime}
+      </motion.span>
     </motion.div>
   )
 }

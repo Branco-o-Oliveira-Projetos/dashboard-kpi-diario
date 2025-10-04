@@ -6,7 +6,7 @@ import { SYSTEM_ORDER, SYSTEMS } from "./lib/systems";
 import type { SystemKey } from "./types";
 
 // Logo da empresa
-const Logo = "https://s3.automacoesbeo.xyz/logos-empresas/Grupo_B_O.png";
+const Logo = "https://s3.automacoesbeo.xyz/logos-empresas/Grupo_B%26O_CINZA.png";
 
 // Quantidade de cards por página do carrossel
 const CARDS_PER_PAGE = 3; // Aumentado para melhor uso do espaço
@@ -57,7 +57,7 @@ function App() {
   }, [pageSystems]);
 
   return (
-    <div className="min-h-screen w-full mx-auto px-4 py-6 max-w-full">
+    <div className="min-h-screen w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl text-text relative">
       {/* Barra superior com logo, título */}
       <motion.div 
         className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 mb-4 sm:mb-6"
@@ -75,12 +75,15 @@ function App() {
         />
         <div className="flex-1" />
         <motion.h2 
-          className="font-semibold text-lg sm:text-xl lg:text-2xl text-center"
+          className="font-semibold text-lg sm:text-xl lg:text-2xl text-center 
+                    bg-gradient-to-r from-[#0061E0] via-[#00A8E0] to-[#0061E0] 
+                    bg-clip-text text-transparent 
+                    drop-shadow-[0_0_15px_rgba(0,168,224,0.4)]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          Dashboard com dados diários
+          Acompanhamento Diário
         </motion.h2>
         <div className="flex-1" />
       </motion.div>

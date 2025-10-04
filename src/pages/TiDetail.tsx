@@ -52,7 +52,7 @@ export default function TiDetail() {
   })
 
   if (isLoading) return <div className="p-8">Carregando...</div>
-  if (error) return <div className="p-8 text-red-500">Erro ao carregar dados</div>
+  if (error) return <div className="p-8 text-neonPink">Erro ao carregar dados</div>
 
   const records: TiData[] = data || []
 
@@ -95,14 +95,14 @@ export default function TiDetail() {
   // Dados para gráfico de pizza de prioridades (último dia)
   const lastRecord = records[records.length - 1]
   const priorityData = lastRecord ? [
-    { name: 'Urgente', value: lastRecord.abertos_urgente, color: '#FF4444' },
-    { name: 'Alta', value: lastRecord.abertos_alta, color: '#FF8800' },
-    { name: 'Média', value: lastRecord.abertos_média, color: '#FFDD44' },
-    { name: 'Baixa', value: lastRecord.abertos_baixa, color: '#44DD44' },
+    { name: 'Urgente', value: lastRecord.abertos_urgente, color: '#EC4899' },
+    { name: 'Alta', value: lastRecord.abertos_alta, color: '#A855F7' },
+    { name: 'Média', value: lastRecord.abertos_média, color: '#06B6D4' },
+    { name: 'Baixa', value: lastRecord.abertos_baixa, color: '#22D3EE' },
   ] : []
 
   return (
-    <div className="min-h-screen bg-bg p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-bg text-text p-4 sm:p-6 lg:p-8">
       {/* Header */}
       <motion.div 
         className="mb-6"
@@ -224,28 +224,28 @@ export default function TiDetail() {
                 labelFormatter={(value) => new Date(value).toLocaleDateString('pt-BR')}
                 formatter={(value: number, name: string) => [fmtNum(value), name]}
               />
-              <Bar dataKey="abertos" fill="#3B82F6" name="Abertos" radius={4}>
+              <Bar dataKey="abertos" fill="#A855F7" name="Abertos" radius={4}>
                 <LabelList 
                   dataKey="abertos" 
                   position="top" 
                   formatter={(value: number) => fmtNum(value)}
-                  style={{ fill: '#3B82F6', fontSize: '10px', fontWeight: 'bold' }}
+                  style={{ fill: '#0F172A', fontSize: '10px', fontWeight: 'bold' }}
                 />
               </Bar>
-              <Bar dataKey="andamento" fill="#F59E0B" name="Em Andamento" radius={4}>
+              <Bar dataKey="andamento" fill="#EC4899" name="Em Andamento" radius={4}>
                 <LabelList 
                   dataKey="andamento" 
                   position="top" 
                   formatter={(value: number) => fmtNum(value)}
-                  style={{ fill: '#F59E0B', fontSize: '10px', fontWeight: 'bold' }}
+                  style={{ fill: '#0F172A', fontSize: '10px', fontWeight: 'bold' }}
                 />
               </Bar>
-              <Bar dataKey="resolvidos_hoje" fill="#10B981" name="Resolvidos Hoje" radius={4}>
+              <Bar dataKey="resolvidos_hoje" fill="#06B6D4" name="Resolvidos Hoje" radius={4}>
                 <LabelList 
                   dataKey="resolvidos_hoje" 
                   position="top" 
                   formatter={(value: number) => fmtNum(value)}
-                  style={{ fill: '#10B981', fontSize: '10px', fontWeight: 'bold' }}
+                  style={{ fill: '#0F172A', fontSize: '10px', fontWeight: 'bold' }}
                 />
               </Bar>
             </BarChart>
@@ -270,7 +270,7 @@ export default function TiDetail() {
                 labelLine={false}
                 label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                 outerRadius={80}
-                fill="#8884d8"
+                fill="#A855F7"
                 dataKey="value"
               >
                 {priorityData.map((entry, index) => (
@@ -325,7 +325,7 @@ export default function TiDetail() {
                   <td className="p-2 text-right text-blue-400">{fmtNum(record.abertos)}</td>
                   <td className="p-2 text-right text-yellow-400">{fmtNum(record.andamento)}</td>
                   <td className="p-2 text-right text-green-400">{fmtNum(record.resolvidos_hoje)}</td>
-                  <td className="p-2 text-right text-red-400">{fmtNum(record.abertos_urgente)}</td>
+                  <td className="p-2 text-right text-neonPink">{fmtNum(record.abertos_urgente)}</td>
                   <td className="p-2 text-right text-orange-400">{fmtNum(record.abertos_alta)}</td>
                   <td className="p-2 text-right text-yellow-400">{fmtNum(record.abertos_média)}</td>
                   <td className="p-2 text-right text-green-400">{fmtNum(record.abertos_baixa)}</td>

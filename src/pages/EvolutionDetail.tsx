@@ -115,7 +115,7 @@ export default function EvolutionDetail() {
   })
 
   if (isLoading) return <div className="p-8">Carregando...</div>
-  if (error) return <div className="p-8 text-red-500">Erro ao carregar dados</div>
+  if (error) return <div className="p-8 text-neonPink">Erro ao carregar dados</div>
 
   const records: EvolutionData[] = data || []
 
@@ -206,7 +206,7 @@ export default function EvolutionDetail() {
   const todayChatsActive = todayRecords.reduce((sum, record) => sum + record.chats_active, 0)
 
   return (
-    <div className="min-h-screen w-full mx-auto px-4 py-6 max-w-full">
+    <div className="min-h-screen w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl text-text">
       {/* Header */}
       <motion.div 
         className="mb-6"
@@ -363,12 +363,12 @@ export default function EvolutionDetail() {
                   }}
                   formatter={(value: number) => [fmtNum(value), 'Mensagens']}
                 />
-                <Bar dataKey="messages_sent_total" fill="#10B981" radius={4}>
+                <Bar dataKey="messages_sent_total" fill="#22D3EE" radius={4}>
                   <LabelList 
                     dataKey="messages_sent_total" 
                     position="center" 
                     formatter={(value: number) => fmtNum(value)}
-                    style={{ fill: '#050505', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#0F172A', fontSize: '10px', fontWeight: 'bold' }}
                   />
                 </Bar>
               </BarChart>
@@ -404,12 +404,12 @@ export default function EvolutionDetail() {
                   }}
                   formatter={(value: number) => [fmtNum(value), 'Chats']}
                 />
-                <Line type="monotone" dataKey="chats_active" stroke="#8B5CF6" strokeWidth={2}>
+                <Line type="monotone" dataKey="chats_active" stroke="#A855F7" strokeWidth={2}>
                   <LabelList 
                     dataKey="chats_active" 
                     position="top" 
                     formatter={(value: number) => fmtNum(value)}
-                    style={{ fill: '#8B5CF6', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#A855F7', fontSize: '10px', fontWeight: 'bold' }}
                     offset={10}
                   />
                 </Line>
@@ -446,12 +446,12 @@ export default function EvolutionDetail() {
                   }}
                   formatter={(value: number) => [`${value.toFixed(1)}%`, 'Taxa de Entrega']}
                 />
-                <Line type="monotone" dataKey="delivered_rate_pct" stroke="#F59E0B" strokeWidth={2}>
+                <Line type="monotone" dataKey="delivered_rate_pct" stroke="#06B6D4" strokeWidth={2}>
                   <LabelList 
                     dataKey="delivered_rate_pct" 
                     position="top" 
                     formatter={(value: number) => `${value.toFixed(1)}%`}
-                    style={{ fill: '#F59E0B', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#06B6D4', fontSize: '10px', fontWeight: 'bold' }}
                     offset={10}
                   />
                 </Line>
@@ -488,12 +488,12 @@ export default function EvolutionDetail() {
                   }}
                   formatter={(value: number) => [`${value.toFixed(1)}m`, 'Tempo Médio']}
                 />
-                <Bar dataKey="frt_avg_minutes" fill="#EF4444" radius={4}>
+                <Bar dataKey="frt_avg_minutes" fill="#EC4899" radius={4}>
                   <LabelList 
                     dataKey="frt_avg_minutes" 
                     position="center" 
                     formatter={(value: number) => `${value.toFixed(1)}m`}
-                    style={{ fill: '#050505', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#0F172A', fontSize: '10px', fontWeight: 'bold' }}
                   />
                 </Bar>
               </BarChart>
@@ -547,7 +547,7 @@ export default function EvolutionDetail() {
                     <span className={`px-2 py-1 rounded text-xs ${
                       record.conn_state_current === 'open' 
                         ? 'bg-green-500/20 text-green-400' 
-                        : 'bg-red-500/20 text-red-400'
+                        : 'bg-neonPink/20 text-neonPink'
                     }`}>
                       {record.conn_state_current}
                     </span>

@@ -16,12 +16,12 @@ interface KpiCardProps {
 function Metric({ label, value, isMoney }: { label: string; value: number | null; isMoney?: boolean }) {
   return (
     <motion.div 
-      className="text-center p-1 sm:p-2 bg-bg2 rounded-lg"
+      className="text-center p-1 sm:p-2 bg-white/5 border border-white/10 rounded-lg shadow-inner shadow-black/40"
       whileHover={{ scale: 1.05 }}
       transition={{ type: "spring", stiffness: 300 }}
     >
       <motion.div 
-        className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold text-text"
+        className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold text-neonAqua"
         initial={{ opacity: 0, scale: 0 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ 
@@ -69,7 +69,7 @@ export default function KpiCard({
       transition={{ duration: 0.6 }}
       whileHover={{ 
         y: -5, 
-        boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
+        boxShadow: "0 12px 30px rgba(34, 211, 238, 0.25)",
         transition: { duration: 0.2 } 
       }}
     >
@@ -145,9 +145,9 @@ export default function KpiCard({
             />
             <Bar
               dataKey="y"
-              fill="#06004B" // Definição de Cor da barra no gráfico.
+              fill="#22D3EE" // Neon bar color
               radius={4}
-              label={{ position: 'center', fill: '#fefefb', fontSize: 10 }} // Definição de Cor do número dentro da barra no gráfico.
+              label={{ position: 'center', fill: '#0F172A', fontSize: 10 }} // Label color for contrast
             />
             <Tooltip
               labelFormatter={(value) => String(new Date(value).getUTCDate())}

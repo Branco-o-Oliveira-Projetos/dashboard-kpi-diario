@@ -2,9 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  body {
+    @apply bg-bg text-text min-h-screen antialiased;
+    background-image: radial-gradient(circle at top left, rgba(168, 85, 247, 0.08), transparent 45%),
+      radial-gradient(circle at bottom right, rgba(6, 182, 212, 0.08), transparent 40%);
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+}
+
 @layer components {
   .card {
-    @apply bg-bg border border-gray-200 rounded-2xl p-3 sm:p-4 lg:p-6 shadow-sm transition-all duration-300 hover:shadow-md;
+    @apply bg-gradient-to-br from-bg2 to-bg3 border border-white/10 rounded-2xl p-3 sm:p-4 lg:p-6 shadow-lg shadow-black/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/50;
   }
   
   .card-title {
@@ -12,14 +24,13 @@
   }
   
   .chip {
-    @apply inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm bg-bg2 text-text2;
+    @apply inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm bg-white/10 text-text;
   }
   
   .status {
-    @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border;
+    @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border border-white/20 text-text;
   }
 
-  /* Responsividade para inputs e controles */
   input[type="range"] {
     @apply accent-primary transition-all duration-200;
   }
@@ -28,23 +39,15 @@
     @apply accent-primary scale-110 sm:scale-125;
   }
 
-  /* Animações suaves para links e botões */
   a, button {
-    @apply transition-all duration-200;
+    @apply transition-all duration-200 hover:text-neonAqua;
   }
 
-  /* Scroll suave para a página */
-  html {
-    @apply scroll-smooth;
-  }
-
-  /* Container responsivo padrão */
   .container-responsive {
     @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 }
 
-/* Estilos específicos para telas pequenas (TVs e dispositivos compactos) */
 @media (max-width: 640px) {
   .card {
     padding: 0.5rem !important;
@@ -56,19 +59,16 @@
     margin-bottom: 0.5rem !important;
   }
 
-  /* Labels das métricas menores */
   .card .text-text2 {
     font-size: 0.625rem !important;
     line-height: 1 !important;
   }
 
-  /* Valores das métricas ajustados */
   .card .text-text {
     font-size: 0.75rem !important;
   }
 }
 
-/* Extra small screens - principalmente para TVs com pouco espaço */
 @media (max-width: 480px) {
   .card {
     padding: 0.25rem !important;
@@ -80,13 +80,11 @@
     margin-bottom: 0.25rem !important;
   }
 
-  /* Labels das métricas ainda menores */
   .card .text-text2 {
     font-size: 0.5rem !important;
     line-height: 0.9 !important;
   }
 
-  /* Valores das métricas ainda menores */
   .card .text-text {
     font-size: 0.625rem !important;
   }

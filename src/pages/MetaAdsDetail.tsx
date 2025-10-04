@@ -38,7 +38,7 @@ export default function MetaAdsDetail() {
   })
 
   if (isLoading) return (
-    <div className="min-h-screen w-full mx-auto px-4 py-6 max-w-full">
+    <div className="min-h-screen w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl text-text">
       <div className="mb-6">
         <motion.div 
           className="h-8 bg-bg2 rounded-lg mb-2"
@@ -87,7 +87,7 @@ export default function MetaAdsDetail() {
       </div>
     </div>
   )
-  if (error) return <div className="min-h-screen w-full mx-auto px-4 py-6 max-w-full text-center pt-20 text-red-500">Erro ao carregar dados</div>
+  if (error) return <div className="min-h-screen w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl text-text text-center pt-20 text-neonPink">Erro ao carregar dados</div>
 
   const records: MetaAdsData[] = data || []
   
@@ -170,7 +170,7 @@ export default function MetaAdsDetail() {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) // Ordem crescente
 
   return (
-    <div className="min-h-screen w-full mx-auto px-4 py-6 max-w-full">
+    <div className="min-h-screen w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl text-text">
       {/* Header */}
       <motion.div 
         className="mb-6"
@@ -222,7 +222,7 @@ export default function MetaAdsDetail() {
                   id="campaign-filter"
                   value={selectedCampaign}
                   onChange={(e) => setSelectedCampaign(e.target.value)}
-                  className="bg-bg2 text-text border border-bg2 rounded px-2 sm:px-3 py-1 text-xs sm:text-sm focus:outline-none focus:border-blue-400 w-full sm:w-auto min-w-[200px]"
+                  className="bg-white/10 text-text border border-white/10 rounded px-2 sm:px-3 py-1 text-xs sm:text-sm focus:outline-none focus:border-neonAqua w-full sm:w-auto min-w-[200px]"
                 >
                   <option value="">Todas as campanhas</option>
                   {uniqueCampaigns.map((campaign, index) => (
@@ -255,7 +255,7 @@ export default function MetaAdsDetail() {
                   id="account-filter"
                   value={selectedAccount}
                   onChange={(e) => setSelectedAccount(e.target.value)}
-                  className="bg-bg2 text-text border border-bg2 rounded px-2 sm:px-3 py-1 text-xs sm:text-sm focus:outline-none focus:border-green-400 w-full sm:w-auto min-w-[200px]"
+                  className="bg-white/10 text-text border border-white/10 rounded px-2 sm:px-3 py-1 text-xs sm:text-sm focus:outline-none focus:border-neonPurple w-full sm:w-auto min-w-[200px]"
                 >
                   <option value="">Todas as contas</option>
                   {uniqueAccounts.map((account, index) => (
@@ -494,12 +494,12 @@ export default function MetaAdsDetail() {
                   }}
                   formatter={(value: number) => [fmtMoney(value), 'Custo']}
                 />
-                <Bar dataKey="cost" fill="#06004B" radius={4}>
+                <Bar dataKey="cost" fill="#A855F7" radius={4}>
                     <LabelList 
                         dataKey="cost" 
                         position="top" 
                         formatter={(value: number) => fmtMoney(value)}
-                        style={{ fill: '#06004B', fontSize: '10px', fontWeight: 'bold' }}
+                        style={{ fill: '#0F172A', fontSize: '10px', fontWeight: 'bold' }}
                     />
                 </Bar>
               </BarChart>
@@ -547,12 +547,12 @@ export default function MetaAdsDetail() {
                   }}
                   formatter={(value: number) => [fmtNum(value), 'Leads']}
                 />
-                <Line type="monotone" dataKey="leads" stroke="#06004B" strokeWidth={2}>
+                <Line type="monotone" dataKey="leads" stroke="#22D3EE" strokeWidth={2}>
                   <LabelList 
                     dataKey="leads" 
                     position="top" 
                     formatter={(value: number) => fmtNum(value)}
-                    style={{ fill: '#06004B', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#22D3EE', fontSize: '10px', fontWeight: 'bold' }}
                     offset={10}
                   />
                 </Line>
@@ -601,12 +601,12 @@ export default function MetaAdsDetail() {
                   }}
                   formatter={(value: number) => [fmtNum(value), 'Impressões']}
                 />
-                <Bar dataKey="impressions" fill="#06004B" radius={4}>
+                <Bar dataKey="impressions" fill="#06B6D4" radius={4}>
                   <LabelList 
                     dataKey="impressions" 
                     position="top" 
                     formatter={(value: number) => fmtNum(value)}
-                    style={{ fill: '#06004B', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#0F172A', fontSize: '10px', fontWeight: 'bold' }}
                   />
                 </Bar>
               </BarChart>
@@ -654,12 +654,12 @@ export default function MetaAdsDetail() {
                   }}
                   formatter={(value: number) => [fmtNum(value), 'Alcance']}
                 />
-                <Line type="monotone" dataKey="reach" stroke="#E74C3C" strokeWidth={2}>
+                <Line type="monotone" dataKey="reach" stroke="#EC4899" strokeWidth={2}>
                   <LabelList 
                     dataKey="reach" 
                     position="top" 
                     formatter={(value: number) => fmtNum(value)}
-                    style={{ fill: '#E74C3C', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#EC4899', fontSize: '10px', fontWeight: 'bold' }}
                     offset={10}
                   />
                 </Line>

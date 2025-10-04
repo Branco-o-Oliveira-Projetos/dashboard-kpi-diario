@@ -54,7 +54,7 @@ function AutomationFlowAnimation() {
               initial={{ scaleX: 0 }}
               animate={{ 
                 scaleX: index < currentStep ? 1 : 0,
-                backgroundColor: index < currentStep ? '#3B82F6' : '#374151'
+                backgroundColor: index < currentStep ? '#A855F7' : '#1E293B'
               }}
               transition={{ duration: 0.5 }}
               style={{ transformOrigin: 'left' }}
@@ -109,7 +109,7 @@ export default function N8nDetail() {
   })
 
   if (isLoading) return (
-    <div className="min-h-screen w-full mx-auto px-4 py-6 max-w-full">
+    <div className="min-h-screen w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl text-text">
       <div className="mb-6">
         <motion.div 
           className="h-8 bg-bg2 rounded-lg mb-2"
@@ -173,7 +173,7 @@ export default function N8nDetail() {
       </div>
     </div>
   )
-  if (error) return <div className="min-h-screen w-full mx-auto px-4 py-6 max-w-full text-center pt-20 text-red-500">Erro ao carregar dados</div>
+  if (error) return <div className="min-h-screen w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl text-text text-center pt-20 text-red-500">Erro ao carregar dados</div>
 
   const records: N8nData[] = data || []
   const latestData = records[0] || {}
@@ -204,7 +204,7 @@ export default function N8nDetail() {
   }, [] as any[]).slice(0, 30).reverse()
 
   return (
-    <div className="min-h-screen w-full mx-auto px-4 py-6 max-w-full">
+    <div className="min-h-screen w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl text-text">
       {/* Header */}
       <motion.div 
         className="mb-6"
@@ -294,7 +294,7 @@ export default function N8nDetail() {
             className="text-lg sm:text-2xl font-bold text-text"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0, 
-              color: ['#E8E8E8', '#3B82F6', '#E8E8E8'],
+              color: ['#E2E8F0', '#22D3EE', '#E2E8F0'],
             }}
             transition={{ 
               duration: 0.4, 
@@ -408,12 +408,12 @@ export default function N8nDetail() {
                   }}
                   formatter={(value: number) => [fmtNum(value), 'Fluxos']}
                 />
-                <Bar dataKey="flows_total" fill="#06004B" radius={4}>
+                <Bar dataKey="flows_total" fill="#22D3EE" radius={4}>
                   <LabelList 
                     dataKey="flows_total" 
                     position="top" 
                     formatter={(value: number) => fmtNum(value)}
-                    style={{ fill: '#06004B', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#0F172A', fontSize: '10px', fontWeight: 'bold' }}
                   />
                   <motion.g
                     animate={{
@@ -477,32 +477,32 @@ export default function N8nDetail() {
                 <Line 
                   type="monotone" 
                   dataKey="runs_success" 
-                  stroke="#10B981" 
+                  stroke="#06B6D4" 
                   strokeWidth={3} 
                   name="runs_success"
-                  dot={{ fill: '#10B981', strokeWidth: 2, r: 4 }}
+                  dot={{ fill: '#06B6D4', strokeWidth: 2, r: 4 }}
                 >
                   <LabelList 
                     dataKey="runs_success" 
                     position="top" 
                     formatter={(value: number) => fmtNum(value)}
-                    style={{ fill: '#10B981', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#06B6D4', fontSize: '10px', fontWeight: 'bold' }}
                     offset={10}
                   />
                 </Line>
                 <Line 
                   type="monotone" 
                   dataKey="runs_failed" 
-                  stroke="#EF4444" 
+                  stroke="#EC4899" 
                   strokeWidth={3} 
                   name="runs_failed"
-                  dot={{ fill: '#EF4444', strokeWidth: 2, r: 4 }}
+                  dot={{ fill: '#EC4899', strokeWidth: 2, r: 4 }}
                 >
                   <LabelList 
                     dataKey="runs_failed" 
                     position="top" 
                     formatter={(value: number) => fmtNum(value)}
-                    style={{ fill: '#EF4444', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#EC4899', fontSize: '10px', fontWeight: 'bold' }}
                     offset={10}
                   />
                 </Line>
@@ -551,12 +551,12 @@ export default function N8nDetail() {
                   }}
                   formatter={(value: number) => [`${value.toFixed(1)}%`, 'Taxa de Sucesso']}
                 />
-                <Line type="monotone" dataKey="success_rate" stroke="#8B5CF6" strokeWidth={2}>
+                <Line type="monotone" dataKey="success_rate" stroke="#A855F7" strokeWidth={2}>
                   <LabelList 
                     dataKey="success_rate" 
                     position="top" 
                     formatter={(value: number) => `${value.toFixed(1)}%`}
-                    style={{ fill: '#8B5CF6', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#A855F7', fontSize: '10px', fontWeight: 'bold' }}
                     offset={10}
                   />
                 </Line>
@@ -605,12 +605,12 @@ export default function N8nDetail() {
                   }}
                   formatter={(value: number) => [`${value.toFixed(1)}s`, 'Duração Média']}
                 />
-                <Bar dataKey="avg_duration_sec" fill="#F59E0B" radius={4}>
+                <Bar dataKey="avg_duration_sec" fill="#EC4899" radius={4}>
                   <LabelList 
                     dataKey="avg_duration_sec" 
                     position="top" 
                     formatter={(value: number) => `${value.toFixed(1)}s`}
-                    style={{ fill: '#F59E0B', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#0F172A', fontSize: '10px', fontWeight: 'bold' }}
                   />
                 </Bar>
               </BarChart>

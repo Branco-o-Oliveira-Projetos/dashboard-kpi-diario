@@ -29,7 +29,7 @@ export default function GoogleAdsDetail() {
   })
 
   if (isLoading) return <div className="p-8">Carregando...</div>
-  if (error) return <div className="p-8 text-red-500">Erro ao carregar dados</div>
+  if (error) return <div className="p-8 text-neonPink">Erro ao carregar dados</div>
 
   const records: GoogleAdsData[] = data || []
   const latestData = records[0] || {}
@@ -63,7 +63,7 @@ export default function GoogleAdsDetail() {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) // Ordem crescente
 
   return (
-    <div className="min-h-screen w-full mx-auto px-4 py-6 max-w-full">
+    <div className="min-h-screen w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl text-text">
       {/* Header */}
       <motion.div 
         className="mb-6"
@@ -188,12 +188,12 @@ export default function GoogleAdsDetail() {
                   }}
                   formatter={(value: number) => [fmtMoney(value), 'Custo']}
                 />
-                <Bar dataKey="cost" fill="#06004B" radius={4}>
+                <Bar dataKey="cost" fill="#A855F7" radius={4}>
                   <LabelList 
                     dataKey="cost" 
                     position="top" 
                     formatter={(value: number) => fmtMoney(value)}
-                    style={{ fill: '#06004B', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#0F172A', fontSize: '10px', fontWeight: 'bold' }}
                   />
                 </Bar>
               </BarChart>
@@ -229,12 +229,12 @@ export default function GoogleAdsDetail() {
                   }}
                   formatter={(value: number) => [fmtNum(value), 'Leads']}
                 />
-                <Line type="monotone" dataKey="leads" stroke="#4285F4" strokeWidth={2}>
+                <Line type="monotone" dataKey="leads" stroke="#22D3EE" strokeWidth={2}>
                   <LabelList 
                     dataKey="leads" 
                     position="top" 
                     formatter={(value: number) => fmtNum(value)}
-                    style={{ fill: '#4285F4', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#22D3EE', fontSize: '10px', fontWeight: 'bold' }}
                     offset={10}
                   />
                 </Line>
@@ -271,12 +271,12 @@ export default function GoogleAdsDetail() {
                   }}
                   formatter={(value: number) => [fmtNum(value), 'Clicks']}
                 />
-                <Bar dataKey="clicks" fill="#06004B" radius={4}>
+                <Bar dataKey="clicks" fill="#06B6D4" radius={4}>
                   <LabelList 
                     dataKey="clicks" 
                     position="top" 
                     formatter={(value: number) => fmtNum(value)}
-                    style={{ fill: '#06004B', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#0F172A', fontSize: '10px', fontWeight: 'bold' }}
                   />
                 </Bar>
               </BarChart>
@@ -312,12 +312,12 @@ export default function GoogleAdsDetail() {
                   }}
                   formatter={(value: number) => [fmtNum(value), 'Impressões']}
                 />
-                <Bar dataKey="impressions" fill="#34A853" radius={4}>
+                <Bar dataKey="impressions" fill="#EC4899" radius={4}>
                   <LabelList 
                     dataKey="impressions" 
                     position="top" 
                     formatter={(value: number) => fmtNum(value)}
-                    style={{ fill: '#34A853', fontSize: '10px', fontWeight: 'bold' }}
+                    style={{ fill: '#0F172A', fontSize: '10px', fontWeight: 'bold' }}
                   />
                 </Bar>
               </BarChart>

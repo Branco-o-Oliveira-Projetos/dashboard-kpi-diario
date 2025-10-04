@@ -23,7 +23,7 @@ export default function PiperunDetail() {
   })
 
   if (isLoading) return (
-    <div className="min-h-screen w-full mx-auto px-4 py-6 max-w-full">
+    <div className="min-h-screen w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl text-text">
       <div className="mb-6">
         <motion.div 
           className="h-8 bg-bg2 rounded-lg mb-2"
@@ -114,7 +114,7 @@ export default function PiperunDetail() {
   }
 
   return (
-    <div className="min-h-screen w-full mx-auto px-4 py-6 max-w-full">
+    <div className="min-h-screen w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl text-text">
       {/* Header */}
       <motion.div 
         className="mb-6"
@@ -172,7 +172,7 @@ export default function PiperunDetail() {
         {pipelines.map((pipeline, index) => {
           const dailyData = preparePipelineData(pipeline.data)
           const latestRecord = pipeline.data[0] || {}
-          const colors = ['#06004B', '#4A90E2', '#10B981', '#F59E0B', '#EF4444']
+          const colors = ['#22D3EE', '#06B6D4', '#A855F7', '#EC4899', '#A855F7']
           const color = colors[index % colors.length]
 
           return (
@@ -341,8 +341,8 @@ export default function PiperunDetail() {
                           name === 'ganhas' ? 'Ganhas' : 'Perdidas'
                         ]}
                       />
-                      <Line type="monotone" dataKey="ganhas" stroke="#10B981" strokeWidth={2} name="ganhas" />
-                      <Line type="monotone" dataKey="perdidas" stroke="#EF4444" strokeWidth={2} name="perdidas" />
+                      <Line type="monotone" dataKey="ganhas" stroke="#06B6D4" strokeWidth={2} name="ganhas" />
+                      <Line type="monotone" dataKey="perdidas" stroke="#EC4899" strokeWidth={2} name="perdidas" />
                     </LineChart>
                   </ResponsiveContainer>
                 </motion.div>
@@ -380,7 +380,7 @@ export default function PiperunDetail() {
                         }}
                         formatter={(value: number) => [`${value.toFixed(1)}%`, 'Taxa de Conversão']}
                       />
-                      <Line type="monotone" dataKey="taxa" stroke="#8B5CF6" strokeWidth={2} />
+                      <Line type="monotone" dataKey="taxa" stroke="#A855F7" strokeWidth={2} />
                     </LineChart>
                   </ResponsiveContainer>
                 </motion.div>
