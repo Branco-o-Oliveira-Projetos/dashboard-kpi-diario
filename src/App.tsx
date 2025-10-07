@@ -128,6 +128,7 @@ function App() {
                   title={def.title}
                   labels={def.labels}
                   chartType={def.chartType}
+                  moneyIndexes={def.moneyIndexes}
                   autoRefreshMs={autoRefresh ? 3 * 60 * 1000 : false}
                 />
               </motion.div>

@@ -10,6 +10,7 @@ interface KpiCardProps {
   title: string
   labels: string[]
   chartType: ChartType
+  moneyIndexes?: number[]
   autoRefreshMs: number | false
 }
 
@@ -44,6 +45,7 @@ export default function KpiCard({
   title,
   labels,
   chartType,
+  moneyIndexes = [],
   autoRefreshMs,
 }: KpiCardProps) {
   const kpisQ = useQuery({
@@ -93,11 +95,7 @@ export default function KpiCard({
         transition={{ duration: 0.5, delay: 0.2 }}
       >
         {labels.slice(0, 3).map((label, idx) => {
-          // Para meta_ads e google_ads, os índices 0, 3, 4 são dinheiro
-          const isMoney = (
-            (system === 'meta_ads' || system === 'google_ads') &&
-            (idx === 0 || idx === 3 || idx === 4)
-          )
+          const isMoney = moneyIndexes.includes(idx)
           return (
             <Metric key={label} label={label} value={k[idx]} isMoney={isMoney} />
           )
@@ -117,11 +115,8 @@ export default function KpiCard({
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           {labels.slice(3, 6).map((label, idx) => {
-            const realIdx = idx + 3;
-            const isMoney = (
-              (system === 'meta_ads' || system === 'google_ads') &&
-              (realIdx === 0 || realIdx === 3 || realIdx === 4)
-            )
+            const realIdx = idx + 3
+            const isMoney = moneyIndexes.includes(realIdx)
             return (
               <Metric key={label} label={label} value={k[realIdx]} isMoney={isMoney} />
             )
