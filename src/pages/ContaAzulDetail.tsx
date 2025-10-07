@@ -75,6 +75,17 @@ interface ContaAzulRecord {
   inadimplentesValor: number
 }
 
+const PROJECAO_LEGEND_LABELS: Record<string, string> = {
+  recebiveis: 'Recebiveis',
+  pagaveis: 'Pagaveis',
+  saldo: 'Saldo projetado',
+}
+
+const INADIMPLENCIA_LEGEND_LABELS: Record<string, string> = {
+  valor: 'Valor em aberto',
+  quantidade: 'Quantidade',
+}
+
 const toNumber = (value: NumericLike): number => {
   if (value === null || value === undefined) return 0
   if (typeof value === 'number') return Number.isFinite(value) ? value : 0
@@ -247,12 +258,12 @@ export default function ContaAzulDetail() {
     <div className='min-h-screen w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl text-text'>
       <motion.div className='mb-6' initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
         <motion.h1 className='text-2xl sm:text-3xl font-bold text-text mb-2 flex flex-wrap items-center gap-3' initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.1 }}>
-          Conta Azul - Visao Executiva
+          Conta Azul - Visão Executiva
         </motion.h1>
         <motion.div className='flex flex-wrap items-center gap-4 text-text2' initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.2 }}>
           <span>Dados consolidados em {mostRecentDateLabel}</span>
           <span className='text-xs bg-bg2/60 text-text px-2 py-1 rounded-md'>
-            Ultima sincronizacao: {lastUpdatedLabel}
+            Última sincronização: {lastUpdatedLabel}
           </span>
         </motion.div>
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.3 }}>
@@ -278,9 +289,9 @@ export default function ContaAzulDetail() {
         </motion.div>
 
         <motion.div className='card' initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} whileHover={{ y: -2, scale: 1.01 }}>
-          <p className='text-text2 text-xs uppercase tracking-wide mb-2'>Execucao do plano</p>
+          <p className='text-text2 text-xs uppercase tracking-wide mb-2'>Execução do plano</p>
           <p className='text-lg sm:text-xl font-semibold text-cyan-300'>{percentLabel(execucaoPercent)}</p>
-          <p className='text-xs text-text2'>Expectativa diaria: {fmtMoney(latest.esperadaValor)}</p>
+          <p className='text-xs text-text2'>Expectativa diária: {fmtMoney(latest.esperadaValor)}</p>
         </motion.div>
 
         <motion.div className='card' initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} whileHover={{ y: -2, scale: 1.01 }}>
@@ -294,15 +305,15 @@ export default function ContaAzulDetail() {
 
       <div className='grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6'>
         <motion.div className='card' initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} whileHover={{ y: -2, scale: 1.01 }}>
-          <p className='text-text2 text-xs uppercase tracking-wide mb-2'>Pagaveis do dia</p>
+          <p className='text-text2 text-xs uppercase tracking-wide mb-2'>Pagáveis do dia</p>
           <p className='text-lg sm:text-xl font-semibold text-orange-300'>{fmtMoney(latest.pagaveisHojeValor)}</p>
-          <p className='text-xs text-text2'>{fmtNum(latest.pagaveisHojeQuant)} obrigacoes previstas</p>
+          <p className='text-xs text-text2'>{fmtNum(latest.pagaveisHojeQuant)} obrigações previstas</p>
         </motion.div>
 
         <motion.div className='card' initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} whileHover={{ y: -2, scale: 1.01 }}>
-          <p className='text-text2 text-xs uppercase tracking-wide mb-2'>Saidas realizadas</p>
+          <p className='text-text2 text-xs uppercase tracking-wide mb-2'>Saídas realizadas</p>
           <p className='text-lg sm:text-xl font-semibold text-red-300'>{fmtMoney(latest.saidaValor)}</p>
-          <p className='text-xs text-text2'>{fmtNum(latest.saidaQuant)} pagamentos concluidos</p>
+          <p className='text-xs text-text2'>{fmtNum(latest.saidaQuant)} pagamentos concluídos</p>
         </motion.div>
 
         <motion.div className='card' initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} whileHover={{ y: -2, scale: 1.01 }}>
@@ -310,23 +321,23 @@ export default function ContaAzulDetail() {
           <p className={`text-lg sm:text-xl font-semibold ${saldoProjetado >= 0 ? 'text-emerald-300' : 'text-neonPink'}`}>
             {fmtMoney(saldoProjetado)}
           </p>
-          <p className='text-xs text-text2'>Recebiveis menos pagaveis futuros</p>
+          <p className='text-xs text-text2'>Recebíveis menos pagáveis futuros</p>
         </motion.div>
 
         <motion.div className='card' initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }} whileHover={{ y: -2, scale: 1.01 }}>
-          <p className='text-text2 text-xs uppercase tracking-wide mb-2'>Risco de inadimplencia</p>
+          <p className='text-text2 text-xs uppercase tracking-wide mb-2'>Risco de inadimplência</p>
           <p className={`text-lg sm:text-xl font-semibold ${latest.inadimplentesValor > 0 ? 'text-neonPink' : 'text-text'}`}>
             {fmtMoney(latest.inadimplentesValor)}
           </p>
-          <p className='text-xs text-text2'>{fmtNum(latest.inadimplentesQuant)} titulos em aberto</p>
+          <p className='text-xs text-text2'>{fmtNum(latest.inadimplentesQuant)} títulos em aberto</p>
         </motion.div>
       </div>
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6'>
         <motion.div className='card lg:col-span-2' initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} whileHover={{ y: -2 }}>
           <div className='flex flex-wrap items-center justify-between gap-2 mb-4'>
-            <h3 className='card-title'>Fluxo diario: entradas x saidas</h3>
-            <span className='text-xs text-text2'>Ultimos 30 dias</span>
+            <h3 className='card-title'>Fluxo diário: entradas x saídas</h3>
+            <span className='text-xs text-text2'>Últimos 30 dias</span>
           </div>
           <div className='h-72'>
             {fluxoSeries.length ? (
@@ -351,14 +362,14 @@ export default function ContaAzulDetail() {
               </ResponsiveContainer>
             ) : (
               <div className='h-full flex items-center justify-center text-text2 text-sm'>
-                Sem historico suficiente.
+                Sem histórico suficiente.
               </div>
             )}
           </div>
         </motion.div>
 
         <motion.div className='card' initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }} whileHover={{ y: -2 }}>
-          <h3 className='card-title mb-4'>Pontos de atencao do dia</h3>
+          <h3 className='card-title mb-4'>Pontos de atenção do dia</h3>
           <div className='space-y-4'>
             <div>
               <p className='text-xs text-text2 uppercase tracking-wide mb-1'>Cliente destaque</p>
@@ -372,8 +383,8 @@ export default function ContaAzulDetail() {
             </div>
             <div className='border-t border-bg2 pt-4'>
               <p className='text-xs text-text2 uppercase tracking-wide mb-1'>Janela de 7 dias</p>
-              <p className='text-sm text-text'>Recebiveis: {fmtMoney(latest.recebiveis7DiasValor)}</p>
-              <p className='text-xs text-text2'>Pagaveis: {fmtMoney(latest.pagaveis7DiasValor)}</p>
+              <p className='text-sm text-text'>Recebíveis: {fmtMoney(latest.recebiveis7DiasValor)}</p>
+              <p className='text-xs text-text2'>Pagáveis: {fmtMoney(latest.pagaveis7DiasValor)}</p>
             </div>
           </div>
         </motion.div>
@@ -382,8 +393,8 @@ export default function ContaAzulDetail() {
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6 mb-6'>
         <motion.div className='card' initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} whileHover={{ y: -2 }}>
           <div className='flex items-center justify-between mb-4'>
-            <h3 className='card-title text-sm sm:text-lg'>Projecao de caixa - proximos 7 dias</h3>
-            <span className='text-xs text-text2'>Ultimas capturas</span>
+            <h3 className='card-title text-sm sm:text-lg'>Projeção de caixa - próximos 7 dias</h3>
+            <span className='text-xs text-text2'>Últimas capturas</span>
           </div>
           <div className='h-64'>
             {projecaoSeries.length ? (
@@ -399,7 +410,12 @@ export default function ContaAzulDetail() {
                       return [fmtMoney(value as number), name === 'recebiveis' ? 'Recebiveis' : 'Pagaveis']
                     }}
                   />
-                  <Legend formatter={value => { if (value === 'saldo') return 'Saldo projetado'; return value === 'recebiveis' ? 'Recebiveis' : 'Pagaveis'; }} />
+                  <Legend
+                    formatter={(value, entry: any) => {
+                      const key = (entry?.dataKey as string) || value
+                      return PROJECAO_LEGEND_LABELS[key] ?? entry?.payload?.name ?? value
+                    }}
+                  />
                   <Bar dataKey='recebiveis' stackId='stack' fill='#22d3ee' radius={[4, 4, 0, 0]} name='Recebiveis' />
                   <Bar dataKey='pagaveis' stackId='stack' fill='#f97316' radius={[4, 4, 0, 0]} name='Pagaveis' />
                   <Line type='monotone' dataKey='saldo' stroke='#38bdf8' strokeWidth={3} dot={{ r: 2 }} name='Saldo projetado' />
@@ -407,7 +423,7 @@ export default function ContaAzulDetail() {
               </ResponsiveContainer>
             ) : (
               <div className='h-full flex items-center justify-center text-text2 text-sm'>
-                Sem projecoes registradas.
+                Sem projeções registradas.
               </div>
             )}
           </div>
@@ -415,8 +431,8 @@ export default function ContaAzulDetail() {
 
         <motion.div className='card' initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65 }} whileHover={{ y: -2 }}>
           <div className='flex items-center justify-between mb-4'>
-            <h3 className='card-title text-sm sm:text-lg'>Inadimplencia monitorada</h3>
-            <span className='text-xs text-text2'>Ultimos 30 dias</span>
+            <h3 className='card-title text-sm sm:text-lg'>Inadimplência monitorada</h3>
+            <span className='text-xs text-text2'>Últimos 30 dias</span>
           </div>
           <div className='h-64'>
             {inadimplenciaSeries.length ? (
@@ -433,7 +449,12 @@ export default function ContaAzulDetail() {
                       return [fmtNum(value as number), 'Titulos']
                     }}
                   />
-                  <Legend formatter={value => value === 'valor' ? 'Valor em aberto' : 'Quantidade'} />
+                  <Legend
+                    formatter={(value, entry: any) => {
+                      const key = (entry?.dataKey as string) || value
+                      return INADIMPLENCIA_LEGEND_LABELS[key] ?? entry?.payload?.name ?? value
+                    }}
+                  />
                   <Bar yAxisId='right' dataKey='quantidade' fill='#818cf8' radius={[4, 4, 0, 0]} name='Quantidade'>
                     <LabelList dataKey='quantidade' position='top' formatter={(value: number) => fmtNum(value)} style={{ fill: '#ffffff', fontSize: 10 }} />
                   </Bar>
@@ -442,7 +463,7 @@ export default function ContaAzulDetail() {
               </ResponsiveContainer>
             ) : (
               <div className='h-full flex items-center justify-center text-text2 text-sm'>
-                Sem inadimplencia registrada.
+                Sem inadimplência registrada.
               </div>
             )}
           </div>
@@ -467,13 +488,13 @@ export default function ContaAzulDetail() {
             <thead>
               <tr className='border-b border-bg2'>
                 <th className='text-left p-2'>Data</th>
-                <th className='text-right p-2'>Recebiveis hoje</th>
-                <th className='text-right p-2'>Pagaveis hoje</th>
+                <th className='text-right p-2'>Recebíveis</th>
+                <th className='text-right p-2'>Pagáveis</th>
                 <th className='text-right p-2'>Entradas</th>
-                <th className='text-right p-2'>Saidas</th>
+                <th className='text-right p-2'>Saídas</th>
                 <th className='text-right p-2'>Fluxo</th>
                 <th className='text-right p-2'>Saldo 7 dias</th>
-                <th className='text-right p-2'>Inadimplencia</th>
+                <th className='text-right p-2'>Inadimplência</th>
                 <th className='text-left p-2'>Cliente destaque</th>
                 <th className='text-left p-2'>Fornecedor destaque</th>
               </tr>

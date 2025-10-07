@@ -1,12 +1,25 @@
+
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, LabelList } from 'recharts'
+import { Link } from 'react-router-dom'
+import {
+  Area,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ComposedChart,
+  Legend,
+  Line,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis
+} from 'recharts'
 import { fetchDetailedData } from '../lib/api'
 import { fmtNum } from '../lib/format'
-import { Link } from 'react-router-dom'
-import { useEffect, useState } from 'react'
 
-interface EvolutionData {
+interface EvolutionRecord {
   ref_date: string
   instance_name: string
   instance_id: string
@@ -30,540 +43,413 @@ interface EvolutionData {
   response_threshold_minutes: number
 }
 
-// Componente de animação de status de conexão
-function ConnectionStatusAnimation() {
-  const [pulse, setPulse] = useState(false)
-  
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPulse(prev => !prev)
-    }, 1500)
-    return () => clearInterval(interval)
-  }, [])
-
-  return (
-    <div className="flex items-center justify-center py-8">
-      <motion.div
-        className="relative"
-        animate={{ scale: pulse ? 1.1 : 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center">
-          <div className="text-white font-bold text-lg">📱</div>
-        </div>
-        <motion.div
-          className="absolute inset-0 bg-green-400 rounded-full opacity-30"
-          animate={{
-            scale: [1, 1.5, 1],
-            opacity: [0.3, 0, 0.3],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-      </motion.div>
-      <div className="ml-6">
-        <div className="text-lg font-bold text-green-400">WhatsApp Evolution API</div>
-        <div className="text-text2">Monitoramento em tempo real</div>
-      </div>
-    </div>
-  )
+interface DailySummary {
+  date: string
+  totalMessages: number
+  clientMessages: number
+  responseMessages: number
+  deliveredRate: number
+  readRate: number
+  responseTime: number
+  chatsActive: number
 }
 
-// Componente de partículas de mensagens
-function MessageParticles() {
-  const particles = Array.from({ length: 12 }, (_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    delay: Math.random() * 3
-  }))
+interface InstanceSnapshot {
+  id: string
+  name: string
+  owner: string
+  status: string
+  connState: string
+  messages: number
+  responseMessages: number
+  deliveredRate: number
+  readRate: number
+  responseTime: number
+  activeChats: number
+}
 
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {particles.map(particle => (
-        <motion.div
-          key={particle.id}
-          className="absolute w-1 h-1 bg-blue-400 rounded-full opacity-60"
-          style={{
-            left: `${particle.x}%`,
-            top: `${particle.y}%`,
-          }}
-          animate={{
-            y: [0, -30, 0],
-            x: [0, Math.cos(particle.id) * 15, 0],
-            opacity: [0.2, 0.8, 0.2],
-          }}
-          transition={{
-            duration: 4 + particle.delay,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-      ))}
-    </div>
-  )
+const safeDivide = (numerator: number, denominator: number) => {
+  if (!denominator) return 0
+  return numerator / denominator
+}
+
+const percentLabel = (value: number) => `${value.toFixed(1)}%`
+
+const secondsToLabel = (seconds: number) => {
+  if (!Number.isFinite(seconds)) return '-'
+  if (seconds < 60) return `${seconds.toFixed(1)}s`
+  const minutes = Math.floor(seconds / 60)
+  const remainder = seconds % 60
+  return `${minutes}m ${remainder.toFixed(0)}s`
 }
 
 export default function EvolutionDetail() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['evolution-detail'],
     queryFn: () => fetchDetailedData('evolution'),
-    refetchInterval: 2 * 60 * 1000, // 2 minutos
+    refetchInterval: 2 * 60 * 1000
   })
 
-  if (isLoading) return <div className="p-8">Carregando...</div>
-  if (error) return <div className="p-8 text-neonPink">Erro ao carregar dados</div>
+  const records = useMemo<EvolutionRecord[]>(() => {
+    if (!Array.isArray(data)) return []
+    return (data as EvolutionRecord[]).filter(item => !!item.ref_date)
+  }, [data])
 
-  const records: EvolutionData[] = data || []
+  const orderedDates = useMemo(() => {
+    return Array.from(new Set(records.map(record => record.ref_date)))
+      .sort((a, b) => new Date(b + 'T00:00:00').getTime() - new Date(a + 'T00:00:00').getTime())
+  }, [records])
 
-  // Preparar dados para gráficos
-  const dailyData = records.reduce((acc, item) => {
-    const date = item.ref_date
-    const existing = acc.find(d => d.date === date)
-    
-    if (existing) {
-      // Somar todos os valores do dia
-      existing.messages_sent_total += item.messages_sent_total
-      existing.client_messages += item.client_messages
-      existing.response_messages += item.response_messages
-      existing.delivered_message += item.delivered_message
-      existing.chats_active += item.chats_active
-      existing.total_chats += item.total_chats
-      
-      // Adicionar instância única à lista se não existir
-      if (!existing.instances.includes(item.instance_name)) {
-        existing.instances.push(item.instance_name)
+  const mostRecentDate = orderedDates[0] ?? ''
+  const previousDate = orderedDates[1] ?? ''
+
+  const todayRecords = useMemo(() => records.filter(record => record.ref_date === mostRecentDate), [records, mostRecentDate])
+  const previousRecords = useMemo(() => records.filter(record => record.ref_date === previousDate), [records, previousDate])
+
+  const aggregateDay = (source: EvolutionRecord[]) => {
+    return source.reduce(
+      (acc, record) => {
+        const messages = record.messages_sent_total || 0
+        const clientMessages = record.client_messages || 0
+        const responseMessages = record.response_messages || 0
+        const deliveredRate = record.delivered_rate_pct || 0
+        const readRate = record.read_rate_pct || 0
+        const responseTime = record.frt_seconds || 0
+        const activeChats = record.chats_active || 0
+
+        acc.totalMessages += messages
+        acc.clientMessages += clientMessages
+        acc.responseMessages += responseMessages
+        acc.deliveredRate += deliveredRate
+        acc.readRate += readRate
+        acc.responseTime += responseTime
+        acc.activeChats += activeChats
+        acc.items += 1
+        return acc
+      },
+      {
+        totalMessages: 0,
+        clientMessages: 0,
+        responseMessages: 0,
+        deliveredRate: 0,
+        readRate: 0,
+        responseTime: 0,
+        activeChats: 0,
+        items: 0
       }
-      
-      // Para porcentagens e médias, acumular valores para calcular média ponderada depois
-      existing.delivered_rate_sum += item.delivered_rate_pct
-      existing.read_rate_sum += item.read_rate_pct
-      existing.frt_avg_sum += item.frt_avg_minutes
-      existing.record_count += 1
-    } else {
-      acc.push({
-        date,
-        messages_sent_total: item.messages_sent_total,
-        client_messages: item.client_messages,
-        response_messages: item.response_messages,
-        delivered_message: item.delivered_message,
-        chats_active: item.chats_active,
-        total_chats: item.total_chats,
-        instances: [item.instance_name], // Array com instâncias únicas
-        delivered_rate_sum: item.delivered_rate_pct,
-        read_rate_sum: item.read_rate_pct,
-        frt_avg_sum: item.frt_avg_minutes,
-        record_count: 1
-      })
+    )
+  }
+
+  const todayTotals = useMemo(() => aggregateDay(todayRecords), [todayRecords])
+  const previousTotals = useMemo(() => aggregateDay(previousRecords), [previousRecords])
+
+  const deliveredRateToday = todayTotals.items ? todayTotals.deliveredRate / todayTotals.items : 0
+  const deliveredRatePrev = previousTotals.items ? previousTotals.deliveredRate / previousTotals.items : 0
+  const readRateToday = todayTotals.items ? todayTotals.readRate / todayTotals.items : 0
+
+  const delta = (current: number, previous: number) => {
+    if (!Number.isFinite(current) || !Number.isFinite(previous)) return 0
+    if (previous === 0) {
+      if (current === 0) return 0
+      return 100
     }
-    return acc
-  }, [] as any[])
-  
-  // Calcular médias e preparar dados finais
-  .map(day => ({
-    ...day,
-    delivered_rate_pct: day.delivered_rate_sum / day.record_count,
-    read_rate_pct: day.read_rate_sum / day.record_count,
-    frt_avg_minutes: day.frt_avg_sum / day.record_count
-  }))
-  .slice(0, 30)
-  .reverse()
+    return ((current - previous) / previous) * 100
+  }
 
-  // Calcular total de instâncias únicas
-  const uniqueInstances = [...new Set(records.map(record => record.instance_name))]
-  const totalInstances = uniqueInstances.length
+  const lastUpdatedLabel = useMemo(() => {
+    const latestTimestamp = records.reduce((latest, record) => {
+      const current = record.update_at ? new Date(record.update_at).getTime() : 0
+      return current > latest ? current : latest
+    }, 0)
+    return latestTimestamp ? new Date(latestTimestamp).toLocaleString('pt-BR') : '-'
+  }, [records])
 
-  // Calcular somas agregadas para os KPIs
-  const aggregatedKPIs = records.reduce((acc, record) => {
-    acc.totalMessagesSent += record.messages_sent_total
-    acc.totalClientMessages += record.client_messages
-    acc.totalChatsActive += record.chats_active
-    acc.deliveredRateSum += record.delivered_rate_pct
-    acc.frtAvgSum += record.frt_avg_minutes
-    acc.recordCount += 1
-    return acc
-  }, {
-    totalMessagesSent: 0,
-    totalClientMessages: 0,
-    totalChatsActive: 0,
-    deliveredRateSum: 0,
-    frtAvgSum: 0,
-    recordCount: 0
-  })
+  const dailySeries = useMemo<DailySummary[]>(() => {
+    const map = new Map<string, DailySummary>()
+    records.forEach(record => {
+      const existing = map.get(record.ref_date)
+      const messages = record.messages_sent_total || 0
+      const clientMessages = record.client_messages || 0
+      const responseMessages = record.response_messages || 0
+      const delivered = record.delivered_rate_pct || 0
+      const read = record.read_rate_pct || 0
+      const responseTime = record.frt_seconds || 0
+      const chatsActive = record.chats_active || 0
 
-  // Calcular médias
-  const avgDeliveredRate = aggregatedKPIs.recordCount > 0 ? aggregatedKPIs.deliveredRateSum / aggregatedKPIs.recordCount : 0
-  const avgFrtMinutes = aggregatedKPIs.recordCount > 0 ? aggregatedKPIs.frtAvgSum / aggregatedKPIs.recordCount : 0
+      if (existing) {
+        existing.totalMessages += messages
+        existing.clientMessages += clientMessages
+        existing.responseMessages += responseMessages
+        existing.deliveredRate += delivered
+        existing.readRate += read
+        existing.responseTime += responseTime
+        existing.chatsActive += chatsActive
+        existing.count += 1
+      } else {
+        map.set(record.ref_date, {
+          date: record.ref_date,
+          totalMessages: messages,
+          clientMessages,
+          responseMessages,
+          deliveredRate: delivered,
+          readRate: read,
+          responseTime,
+          chatsActive,
+          count: 1
+        } as DailySummary & { count: number })
+      }
+    })
 
-  // Calcular mensagens do dia atual
-  const today = new Date().toISOString().split('T')[0]
-  const todayRecords = records.filter(record => record.ref_date === today)
-  const todayMessagesSent = todayRecords.reduce((sum, record) => sum + record.messages_sent_total, 0)
-  const todayClientMessages = todayRecords.reduce((sum, record) => sum + record.client_messages, 0)
-  const todayChatsActive = todayRecords.reduce((sum, record) => sum + record.chats_active, 0)
+    return Array.from(map.values()).map(item => ({
+      date: item.date,
+      totalMessages: item.totalMessages,
+      clientMessages: item.clientMessages,
+      responseMessages: item.responseMessages,
+      deliveredRate: item.count ? item.deliveredRate / item.count : 0,
+      readRate: item.count ? item.readRate / item.count : 0,
+      responseTime: item.count ? item.responseTime / item.count : 0,
+      chatsActive: item.chatsActive
+    })).sort((a, b) => new Date(a.date + 'T00:00:00').getTime() - new Date(b.date + 'T00:00:00').getTime()).slice(-30)
+  }, [records])
+
+  const instanceSnapshots = useMemo<InstanceSnapshot[]>(() => {
+    return todayRecords.map(record => {
+      const delivered = record.delivered_rate_pct || 0
+      const read = record.read_rate_pct || 0
+      const messages = record.messages_sent_total || 0
+      const responses = record.response_messages || 0
+      const responseTime = record.frt_seconds || 0
+      const activeChats = record.chats_active || 0
+
+      return {
+        id: record.instance_id,
+        name: record.instance_name || 'Instância não identificada',
+        owner: record.owner || '—',
+        status: record.instance_status || 'Desconhecido',
+        connState: record.conn_state_current || 'Desconhecido',
+        messages,
+        responseMessages: responses,
+        deliveredRate: delivered,
+        readRate: read,
+        responseTime,
+        activeChats
+      }
+    }).sort((a, b) => b.messages - a.messages)
+  }, [todayRecords])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl text-text">
+        <div className="mb-6 space-y-3">
+          <motion.div className="h-8 bg-bg2 rounded-lg" animate={{ opacity: [0.3, 0.8, 0.3] }} transition={{ duration: 1.4, repeat: Infinity }} />
+          <motion.div className="h-4 bg-bg2 rounded-lg w-1/3" animate={{ opacity: [0.3, 0.8, 0.3] }} transition={{ duration: 1.4, repeat: Infinity, delay: 0.2 }} />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+          {[...Array(4)].map((_, index) => (
+            <motion.div key={index} className="card h-24 bg-bg2/60" animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ duration: 1.4, repeat: Infinity, delay: index * 0.08 }} />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {[...Array(3)].map((_, index) => (
+            <motion.div key={index} className="card h-72 bg-bg2/60" animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ duration: 1.4, repeat: Infinity, delay: 0.4 + (index * 0.1) }} />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl text-text text-center pt-24 text-neonPink">
+        Erro ao carregar dados do Evolution.
+      </div>
+    )
+  }
+
+  if (!records.length) {
+    return (
+      <div className="min-h-screen w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl text-text">
+        <motion.div className="card text-center py-16" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          Nenhum dado disponível para Evolution no momento.
+        </motion.div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl text-text">
-      {/* Header */}
-      <motion.div 
-        className="mb-6"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        <motion.h1 
-          className="text-2xl sm:text-3xl font-bold text-text mb-2"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          Evolution API - Detalhes
+      <motion.div className="mb-6" initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+        <motion.h1 className="text-2xl sm:text-3xl font-bold text-text mb-2 flex flex-wrap items-center gap-3" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.1 }}>
+          Evolution – Saúde das Instâncias WhatsApp
         </motion.h1>
-        <motion.p 
-          className="text-text2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-        >
-          Monitoramento completo das instâncias WhatsApp
-        </motion.p>
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-        >
-          <Link to="/" className="text-blue-400 hover:underline mt-2 inline-block group">
-            <motion.span
-              className="inline-flex items-center"
-              whileHover={{ x: -5 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              ← Voltar ao Dashboard
+        <motion.div className="flex flex-wrap items-center gap-4 text-text2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.2 }}>
+          <span>Referência: {mostRecentDate ? new Date(mostRecentDate + 'T00:00:00').toLocaleDateString('pt-BR') : '-'}</span>
+          <span className="text-xs bg-bg2/60 text-text px-2 py-1 rounded-md">Última sincronização: {lastUpdatedLabel}</span>
+        </motion.div>
+        <motion.div className="mt-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.25 }}>
+          <span className="text-sm text-text2">Instâncias ativas monitoradas: {new Set(records.map(record => record.instance_id)).size}</span>
+          <Link to="/" className="text-blue-400 hover:underline inline-flex items-center gap-2 group">
+            <motion.span whileHover={{ x: -4 }} transition={{ type: 'spring', stiffness: 320 }}>
+              Voltar ao dashboard
             </motion.span>
           </Link>
         </motion.div>
       </motion.div>
 
-      {/* Animação de Status */}
-      <motion.div 
-        className="card mb-6 relative" 
-        initial={{ opacity: 0 }} 
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, delay: 0.5 }}
-      >
-        <MessageParticles />
-        <div className="relative z-10">
-          <h3 className="text-sm sm:text-lg font-semibold text-text mb-4 text-center">Status da API em Tempo Real</h3>
-          <ConnectionStatusAnimation />
-          <div className="text-center text-text2 text-sm mt-4">
-            Instância ativa • {fmtNum(todayMessagesSent)} mensagens enviadas hoje
-          </div>
-        </div>
-      </motion.div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6">
+        <motion.div className="card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} whileHover={{ y: -2, scale: 1.01 }}>
+          <p className="text-text2 text-xs uppercase tracking-wide mb-2">Mensagens enviadas</p>
+          <p className="text-lg sm:text-xl font-semibold">{fmtNum(todayTotals.totalMessages)}</p>
+          <p className="text-xs text-text2">Variação vs dia anterior: {percentLabel(delta(todayTotals.totalMessages, previousTotals.totalMessages))}</p>
+        </motion.div>
 
-      {/* KPIs Principais */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 lg:gap-6 mb-6">
-        <motion.div 
-          className="card text-center p-2 sm:p-3 lg:p-4" 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          whileHover={{ y: -2, scale: 1.02 }}
-        >
-          <div className="text-sm sm:text-lg lg:text-xl font-bold text-green-400">{fmtNum(todayMessagesSent)}</div>
-          <div className="text-xs text-text2">Msgs Enviadas Hoje</div>
+        <motion.div className="card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} whileHover={{ y: -2, scale: 1.01 }}>
+          <p className="text-text2 text-xs uppercase tracking-wide mb-2">Taxa de entrega</p>
+          <p className="text-lg sm:text-xl font-semibold text-emerald-300">{percentLabel(deliveredRateToday)}</p>
+          <p className="text-xs text-text2">Delta vs dia anterior: {percentLabel(deliveredRateToday - deliveredRatePrev)}</p>
         </motion.div>
-        
-        <motion.div 
-          className="card text-center p-2 sm:p-3 lg:p-4" 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.7 }}
-          whileHover={{ y: -2, scale: 1.02 }}
-        >
-          <div className="text-sm sm:text-lg lg:text-xl font-bold text-blue-400">{fmtNum(todayClientMessages)}</div>
-          <div className="text-xs text-text2">Msgs Clientes Hoje</div>
+
+        <motion.div className="card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} whileHover={{ y: -2, scale: 1.01 }}>
+          <p className="text-text2 text-xs uppercase tracking-wide mb-2">Tempo de resposta (FRT)</p>
+          <p className="text-lg sm:text-xl font-semibold">{secondsToLabel(todayTotals.items ? todayTotals.responseTime / todayTotals.items : 0)}</p>
+          <p className="text-xs text-text2">Ocorrências acima do limite: {fmtNum(todayRecords.reduce((acc, item) => acc + (item.chats_no_response_over_threshold || 0), 0))}</p>
         </motion.div>
-        
-        <motion.div 
-          className="card text-center p-2 sm:p-3 lg:p-4" 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
-          whileHover={{ y: -2, scale: 1.02 }}
-        >
-          <div className="text-sm sm:text-lg lg:text-xl font-bold text-purple-400">{fmtNum(todayChatsActive)}</div>
-          <div className="text-xs text-text2">Chats Ativos Hoje</div>
-        </motion.div>
-        
-        <motion.div 
-          className="card text-center p-2 sm:p-3 lg:p-4" 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.9 }}
-          whileHover={{ y: -2, scale: 1.02 }}
-        >
-          <div className="text-sm sm:text-lg lg:text-xl font-bold text-purple-400">{fmtNum(totalInstances)}</div>
-          <div className="text-xs text-text2">Total Instâncias</div>
-        </motion.div>
-        
-        <motion.div 
-          className="card text-center p-2 sm:p-3 lg:p-4" 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.0 }}
-          whileHover={{ y: -2, scale: 1.02 }}
-        >
-          <div className="text-sm sm:text-lg lg:text-xl font-bold text-text">{avgDeliveredRate.toFixed(1)}%</div>
-          <div className="text-xs text-text2">Taxa Entrega</div>
-        </motion.div>
-        
-        <motion.div 
-          className="card text-center p-2 sm:p-3 lg:p-4" 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.1 }}
-          whileHover={{ y: -2, scale: 1.02 }}
-        >
-          <div className="text-sm sm:text-lg lg:text-xl font-bold text-text">{avgFrtMinutes.toFixed(1)} min</div>
-          <div className="text-xs text-text2">Tempo Médio Resposta</div>
+
+        <motion.div className="card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} whileHover={{ y: -2, scale: 1.01 }}>
+          <p className="text-text2 text-xs uppercase tracking-wide mb-2">Chats ativos</p>
+          <p className="text-lg sm:text-xl font-semibold">{fmtNum(todayTotals.activeChats)}</p>
+          <p className="text-xs text-text2">Cliente → Atendimento: {fmtNum(todayTotals.clientMessages)} | Atendimento → Cliente: {fmtNum(todayTotals.responseMessages)}</p>
         </motion.div>
       </div>
 
-      {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6 mb-6">
-        {/* Gráfico de Mensagens Enviadas */}
-        <motion.div 
-          className="card" 
-          initial={{ opacity: 0, x: -30 }} 
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 1.2 }}
-          whileHover={{ y: -2 }}
-        >
-          <h3 className="text-sm sm:text-lg font-semibold text-text mb-3 sm:mb-4">📤 Mensagens Enviadas por Dia</h3>
-          <div className="h-40 sm:h-48 lg:h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dailyData}>
-                <XAxis 
-                  dataKey="date" 
-                  tickFormatter={(value) => {
-                    const date = new Date(value + 'T00:00:00')
-                    return date.getDate().toString()
-                  }}
-                  fontSize={10}
-                />
-                <YAxis fontSize={10} />
-                <Tooltip 
-                  labelFormatter={(value) => {
-                    const date = new Date(value + 'T00:00:00')
-                    return date.toLocaleDateString('pt-BR')
-                  }}
-                  formatter={(value: number) => [fmtNum(value), 'Mensagens']}
-                />
-                <Bar dataKey="messages_sent_total" fill="#22D3EE" radius={4}>
-                  <LabelList 
-                    dataKey="messages_sent_total" 
-                    position="top" 
-                    formatter={(value: number) => fmtNum(value)}
-                    style={{ fill: '#FFFFFF', fontSize: '10px', fontWeight: 'bold' }}
+        <motion.div className="card" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} whileHover={{ y: -2 }}>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="card-title text-sm sm:text-lg">Ritmo de mensagens</h3>
+            <span className="text-xs text-text2">Últimos 30 dias</span>
+          </div>
+          <div className="h-72">
+            {dailySeries.length ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={dailySeries}>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                  <XAxis dataKey="date" tickFormatter={value => new Date(value + 'T00:00:00').getDate().toString()} fontSize={10} />
+                  <YAxis yAxisId="left" fontSize={10} tickFormatter={value => fmtNum(value as number)} width={90} />
+                  <YAxis yAxisId="right" orientation="right" fontSize={10} tickFormatter={value => percentLabel(value as number).replace('%', '')} />
+                  <Tooltip
+                    labelFormatter={value => new Date(value + 'T00:00:00').toLocaleDateString('pt-BR')}
+                    formatter={(value, name) => {
+                      if (name === 'deliveredRate') return [percentLabel(value as number), 'Taxa de entrega']
+                      if (name === 'readRate') return [percentLabel(value as number), 'Taxa de leitura']
+                      return [fmtNum(value as number), name === 'clientMessages' ? 'Cliente → Atendimento' : name === 'responseMessages' ? 'Atendimento → Cliente' : 'Mensagens']
+                    }}
                   />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+                  <Legend formatter={value => {
+                    if (value === 'clientMessages') return 'Cliente → Atendimento'
+                    if (value === 'responseMessages') return 'Atendimento → Cliente'
+                    if (value === 'deliveredRate') return 'Taxa de entrega'
+                    if (value === 'readRate') return 'Taxa de leitura'
+                    return 'Total de mensagens'
+                  }} />
+                  <Area yAxisId="left" type="monotone" dataKey="totalMessages" stroke="#2563eb" fill="#2563eb" fillOpacity={0.12} strokeWidth={2} name="Total de mensagens" />
+                  <Bar yAxisId="left" dataKey="clientMessages" fill="#38bdf8" radius={[4, 4, 0, 0]} name="Cliente → Atendimento" />
+                  <Bar yAxisId="left" dataKey="responseMessages" fill="#22c55e" radius={[4, 4, 0, 0]} opacity={0.6} name="Atendimento → Cliente" />
+                  <Line yAxisId="right" type="monotone" dataKey="deliveredRate" stroke="#facc15" strokeWidth={3} dot={{ r: 2 }} name="Taxa de entrega" />
+                  <Line yAxisId="right" type="monotone" dataKey="readRate" stroke="#f97316" strokeWidth={2} strokeDasharray="4 4" dot={{ r: 2 }} name="Taxa de leitura" />
+                </ComposedChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-text2 text-sm">
+                Sem histórico suficiente para análise.
+              </div>
+            )}
           </div>
         </motion.div>
 
-        {/* Gráfico de Chats Ativos */}
-        <motion.div 
-          className="card" 
-          initial={{ opacity: 0, x: 30 }} 
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 1.3 }}
-          whileHover={{ y: -2 }}
-        >
-          <h3 className="text-sm sm:text-lg font-semibold text-text mb-3 sm:mb-4">💬 Chats Ativos por Dia</h3>
-          <div className="h-40 sm:h-48 lg:h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={dailyData}>
-                <XAxis 
-                  dataKey="date" 
-                  tickFormatter={(value) => {
-                    const date = new Date(value + 'T00:00:00')
-                    return date.getDate().toString()
-                  }}
-                  fontSize={10}
-                />
-                <YAxis fontSize={10} />
-                <Tooltip 
-                  labelFormatter={(value) => {
-                    const date = new Date(value + 'T00:00:00')
-                    return date.toLocaleDateString('pt-BR')
-                  }}
-                  formatter={(value: number) => [fmtNum(value), 'Chats']}
-                />
-                <Line type="monotone" dataKey="chats_active" stroke="#22D3EE" strokeWidth={2}>
-                  <LabelList 
-                    dataKey="chats_active" 
-                    position="top" 
-                    formatter={(value: number) => fmtNum(value)}
-                    style={{ fill: '#FFFFFF', fontSize: '10px', fontWeight: 'bold' }}
-                    offset={10}
-                  />
-                </Line>
-              </LineChart>
-            </ResponsiveContainer>
+        <motion.div className="card" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }} whileHover={{ y: -2 }}>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="card-title text-sm sm:text-lg">Tempo de resposta e chats ativos</h3>
+            <span className="text-xs text-text2">Últimos 30 dias</span>
           </div>
-        </motion.div>
-
-        {/* Gráfico de Taxa de Entrega */}
-        <motion.div 
-          className="card" 
-          initial={{ opacity: 0, y: 30 }} 
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.4 }}
-          whileHover={{ y: -2 }}
-        >
-          <h3 className="text-sm sm:text-lg font-semibold text-text mb-3 sm:mb-4">📊 Taxa de Entrega (%)</h3>
-          <div className="h-40 sm:h-48 lg:h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={dailyData}>
-                <XAxis 
-                  dataKey="date" 
-                  tickFormatter={(value) => {
-                    const date = new Date(value + 'T00:00:00')
-                    return date.getDate().toString()
-                  }}
-                  fontSize={10}
-                />
-                <YAxis domain={[0, 100]} fontSize={10} />
-                <Tooltip 
-                  labelFormatter={(value) => {
-                    const date = new Date(value + 'T00:00:00')
-                    return date.toLocaleDateString('pt-BR')
-                  }}
-                  formatter={(value: number) => [`${value.toFixed(1)}%`, 'Taxa de Entrega']}
-                />
-                <Line type="monotone" dataKey="delivered_rate_pct" stroke="#06B6D4" strokeWidth={2}>
-                  <LabelList 
-                    dataKey="delivered_rate_pct" 
-                    position="top" 
-                    formatter={(value: number) => `${value.toFixed(1)}%`}
-                    style={{ fill: '#FFFFFF', fontSize: '10px', fontWeight: 'bold' }}
-                    offset={10}
+          <div className="h-72">
+            {dailySeries.length ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={dailySeries}>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                  <XAxis dataKey="date" tickFormatter={value => new Date(value + 'T00:00:00').getDate().toString()} fontSize={10} />
+                  <YAxis yAxisId="left" fontSize={10} tickFormatter={value => secondsToLabel(value as number)} width={90} />
+                  <YAxis yAxisId="right" orientation="right" fontSize={10} tickFormatter={value => fmtNum(value as number)} />
+                  <Tooltip
+                    labelFormatter={value => new Date(value + 'T00:00:00').toLocaleDateString('pt-BR')}
+                    formatter={(value, name) => {
+                      if (name === 'responseTime') return [secondsToLabel(value as number), 'Tempo de resposta']
+                      return [fmtNum(value as number), 'Chats ativos']
+                    }}
                   />
-                </Line>
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </motion.div>
-
-        {/* Gráfico de Tempo de Resposta */}
-        <motion.div 
-          className="card" 
-          initial={{ opacity: 0, y: 30 }} 
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.5 }}
-          whileHover={{ y: -2 }}
-        >
-          <h3 className="text-sm sm:text-lg font-semibold text-text mb-3 sm:mb-4">⏱️ Tempo de Resposta (min)</h3>
-          <div className="h-40 sm:h-48 lg:h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dailyData}>
-                <XAxis 
-                  dataKey="date" 
-                  tickFormatter={(value) => {
-                    const date = new Date(value + 'T00:00:00')
-                    return date.getDate().toString()
-                  }}
-                  fontSize={10}
-                />
-                <YAxis fontSize={10} />
-                <Tooltip 
-                  labelFormatter={(value) => {
-                    const date = new Date(value + 'T00:00:00')
-                    return date.toLocaleDateString('pt-BR')
-                  }}
-                  formatter={(value: number) => [`${value.toFixed(1)}m`, 'Tempo Médio']}
-                />
-                <Bar dataKey="frt_avg_minutes" fill="#22D3EE" radius={4}>
-                  <LabelList 
-                    dataKey="frt_avg_minutes" 
-                    position="top" 
-                    formatter={(value: number) => `${value.toFixed(1)}m`}
-                    style={{ fill: '#FFFFFF', fontSize: '10px', fontWeight: 'bold' }}
-                  />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+                  <Legend formatter={value => value === 'responseTime' ? 'Tempo de resposta' : 'Chats ativos'} />
+                  <Area yAxisId="left" type="monotone" dataKey="responseTime" stroke="#a855f7" fill="#a855f7" fillOpacity={0.12} strokeWidth={2} name="Tempo de resposta" />
+                  <Bar yAxisId="right" dataKey="chatsActive" fill="#22d3ee" radius={[4, 4, 0, 0]} name="Chats ativos" />
+                </ComposedChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-text2 text-sm">
+                Sem dados suficientes para o período.
+              </div>
+            )}
           </div>
         </motion.div>
       </div>
 
-      {/* Tabela de Registros */}
-      <motion.div 
-        className="card" 
-        initial={{ opacity: 0, y: 50 }} 
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 1.6 }}
-        whileHover={{ y: -2 }}
-      >
-        <h3 className="text-sm sm:text-lg font-semibold text-text mb-3 sm:mb-4">Registros Recentes</h3>
+      <motion.div className="card" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} whileHover={{ y: -2 }}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <h3 className="card-title">Instâncias monitoradas</h3>
+          <span className="text-xs text-text2">Resumo diário por instância</span>
+        </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-xs sm:text-sm">
             <thead>
               <tr className="border-b border-bg2">
-                <th className="text-left p-2">Data</th>
                 <th className="text-left p-2">Instância</th>
+                <th className="text-left p-2">Responsável</th>
                 <th className="text-left p-2">Status</th>
-                <th className="text-right p-2">Msgs Enviadas</th>
-                <th className="text-right p-2">Msgs Clientes</th>
-                <th className="text-right p-2">Chats Ativos</th>
-                <th className="text-right p-2">Taxa Entrega</th>
-                <th className="text-right p-2">Taxa Leitura</th>
-                <th className="text-right p-2">Atualização</th>
+                <th className="text-left p-2">Conexão</th>
+                <th className="text-right p-2">Mensagens</th>
+                <th className="text-right p-2">Respostas</th>
+                <th className="text-right p-2">Taxa de entrega</th>
+                <th className="text-right p-2">Taxa de leitura</th>
+                <th className="text-right p-2">Tempo resposta</th>
+                <th className="text-right p-2">Chats ativos</th>
               </tr>
             </thead>
             <tbody>
-              {records.slice(0, 20).map((record, idx) => (
-                <motion.tr 
-                  key={idx} 
-                  className="border-b border-bg2/50 hover:bg-bg2/20"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: idx * 0.05 + 1.7 }}
-                  whileHover={{ 
-                    backgroundColor: "rgba(255, 255, 255, 0.05)",
-                    transition: { duration: 0.2 }
-                  }}
-                >
-                  <td className="p-2">{new Date(record.ref_date + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
-                  <td className="p-2 truncate max-w-[120px]" title={record.instance_name}>
-                    {record.instance_name}
+              {instanceSnapshots.length ? (
+                instanceSnapshots.map((instance, index) => (
+                  <motion.tr
+                    key={instance.id}
+                    className="border-b border-bg2/40 hover:bg-bg2/20"
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.25, delay: index * 0.03 }}
+                  >
+                    <td className="p-2 truncate max-w-[200px]" title={instance.name}>{instance.name}</td>
+                    <td className="p-2 truncate max-w-[160px]" title={instance.owner}>{instance.owner}</td>
+                    <td className="p-2">{instance.status || '—'}</td>
+                    <td className="p-2">{instance.connState || '—'}</td>
+                    <td className="p-2 text-right">{fmtNum(instance.messages)}</td>
+                    <td className="p-2 text-right text-emerald-300">{fmtNum(instance.responseMessages)}</td>
+                    <td className="p-2 text-right">{percentLabel(instance.deliveredRate)}</td>
+                    <td className="p-2 text-right">{percentLabel(instance.readRate)}</td>
+                    <td className="p-2 text-right">{secondsToLabel(instance.responseTime)}</td>
+                    <td className="p-2 text-right">{fmtNum(instance.activeChats)}</td>
+                  </motion.tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={10} className="text-center text-text2 p-4">
+                    Nenhuma instância com dados no dia selecionado.
                   </td>
-                  <td className="p-2">
-                    <span
-                      className={`px-2 py-1 rounded text-xs ${
-                        record.conn_state_current === 'open'
-                          ? 'bg-green-500/20 text-green-400'
-                          : 'bg-[#F87171]/20 text-[#F87171]'
-                      }`}
-                    >
-                      {record.conn_state_current}
-                    </span>
-                  </td>
-                  <td className="p-2 text-right text-green-400">{fmtNum(record.messages_sent_total)}</td>
-                  <td className="p-2 text-right text-blue-400">{fmtNum(record.client_messages)}</td>
-                  <td className="p-2 text-right">{fmtNum(record.chats_active)}</td>
-                  <td className="p-2 text-right">{record.delivered_rate_pct?.toFixed(1)}%</td>
-                  <td className="p-2 text-right">{record.read_rate_pct?.toFixed(1)}%</td>
-                  <td className="p-2 text-right text-text2">
-                    {new Date(record.update_at).toLocaleString('pt-BR')}
-                  </td>
-                </motion.tr>
-              ))}
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

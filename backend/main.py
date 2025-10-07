@@ -59,8 +59,8 @@ SISTEMAS_DB = {
         'filtro_val': '',
         'date_col': 'ref_date',
         'updated_col': 'updated_at',
-        'kpi_cols': ['clientes_novos', 'a_receber_total', 'recebidas_total'],
-        'chart_col': 'recebidas_total',
+        'kpi_cols': ['recebiveisHojeValor', 'entradaValor', 'pagaveisHojeValor'],
+        'chart_col': 'entradaValor',
         'kpi_query_type': 'single_row',
         'series_aggregation': 'SUM'
     },

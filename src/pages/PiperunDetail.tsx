@@ -1,11 +1,24 @@
+
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
+import { Link } from 'react-router-dom'
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ComposedChart,
+  Legend,
+  Line,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis
+} from 'recharts'
 import { fetchPiperunAllPipelines } from '../lib/api'
 import { fmtNum } from '../lib/format'
-import { Link } from 'react-router-dom'
 
-interface PiperunData {
+interface PiperunRecord {
   ref_date: string
   pipeline_id: string
   pipeline_name: string
@@ -15,457 +28,431 @@ interface PiperunData {
   updated_at: string
 }
 
+interface AggregatedDay {
+  date: string
+  recebidas: number
+  ganhas: number
+  perdidas: number
+}
+
+interface PipelineGroup {
+  id: string
+  name: string
+  records: PiperunRecord[]
+}
+
+interface PipelineSnapshot {
+  id: string
+  name: string
+  recebidasDia: number
+  ganhasDia: number
+  perdidasDia: number
+  winRateDia: number
+  recebidas7: number
+  ganhas7: number
+  perdidas7: number
+  winRate7: number
+}
+
+const safeDivide = (numerator: number, denominator: number) => {
+  if (!denominator) return 0
+  return numerator / denominator
+}
+
+const percentLabel = (value: number) => `${(value).toFixed(1)}%`
+
 export default function PiperunDetail() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['piperun-all-pipelines'],
     queryFn: () => fetchPiperunAllPipelines(),
-    refetchInterval: 2 * 60 * 1000, // 2 minutos
+    refetchInterval: 2 * 60 * 1000
   })
 
-  if (isLoading) return (
-    <div className="min-h-screen w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl text-text">
-      <div className="mb-6">
-        <motion.div 
-          className="h-8 bg-bg2 rounded-lg mb-2"
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-        />
-        <motion.div 
-          className="h-4 bg-bg2 rounded-lg w-1/2"
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
-        />
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
-        {[...Array(3)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="card"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-          >
-            <motion.div 
-              className="h-6 bg-bg2 rounded-lg mb-4"
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.3 }}
-            />
-            <div className="grid grid-cols-3 gap-2 mb-4">
-              {[...Array(3)].map((_, j) => (
-                <motion.div 
-                  key={j}
-                  className="h-16 bg-bg2 rounded-lg"
-                  animate={{ opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 1.5, repeat: Infinity, delay: (i * 0.3) + (j * 0.1) }}
-                />
-              ))}
-            </div>
-            {[...Array(3)].map((_, j) => (
-              <motion.div 
-                key={j}
-                className="h-32 bg-bg2 rounded-lg mb-4"
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 1.5, repeat: Infinity, delay: (i * 0.3) + (j * 0.2) }}
-              />
-            ))}
-          </motion.div>
-        ))}
-      </div>
-    </div>
-  )
-  if (error) return <div className="p-8 text-red-500">Erro ao carregar dados</div>
+  const records = useMemo<PiperunRecord[]>(() => {
+    if (!Array.isArray(data)) return []
+    return (data as PiperunRecord[]).filter(item => !!item.ref_date)
+  }, [data])
 
-  const records: PiperunData[] = data || []
-  
-  // Separar dados por pipeline (o backend já filtra pelas 3 pipelines específicas)
-  const pipelineData = records.reduce((acc, item) => {
-    if (!acc[item.pipeline_id]) {
-      acc[item.pipeline_id] = {
-        name: item.pipeline_name,
-        data: []
-      }
-    }
-    acc[item.pipeline_id].data.push(item)
-    return acc
-  }, {} as Record<string, { name: string; data: PiperunData[] }>)
-
-  const pipelines = Object.values(pipelineData)
-
-  // Preparar dados diários para cada pipeline
-  const preparePipelineData = (pipelineRecords: PiperunData[]) => {
-    return pipelineRecords.reduce((acc, item) => {
-      const date = item.ref_date
-      const existing = acc.find(d => d.date === date)
-      
+  const pipelineGroups = useMemo<PipelineGroup[]>(() => {
+    const map = new Map<string, PipelineGroup>()
+    records.forEach(record => {
+      const existing = map.get(record.pipeline_id)
       if (existing) {
-        existing.recebidas += item.oportunidades_recebidas
-        existing.perdidas += item.oportunidades_perdidas
-        existing.ganhas += item.oportunidades_ganhas
+        existing.records.push(record)
       } else {
-        acc.push({
-          date,
-          recebidas: item.oportunidades_recebidas,
-          perdidas: item.oportunidades_perdidas,
-          ganhas: item.oportunidades_ganhas
+        map.set(record.pipeline_id, {
+          id: record.pipeline_id,
+          name: record.pipeline_name,
+          records: [record]
         })
       }
-      return acc
-    }, [] as any[]).slice(0, 30).reverse()
+    })
+
+    return Array.from(map.values()).map(group => ({
+      ...group,
+      records: [...group.records].sort((a, b) => new Date(b.ref_date + 'T00:00:00').getTime() - new Date(a.ref_date + 'T00:00:00').getTime())
+    }))
+  }, [records])
+
+  const orderedDates = useMemo(() => {
+    return Array.from(new Set(records.map(record => record.ref_date)))
+      .sort((a, b) => new Date(b + 'T00:00:00').getTime() - new Date(a + 'T00:00:00').getTime())
+  }, [records])
+
+  const mostRecentDate = orderedDates[0] ?? ''
+  const previousDate = orderedDates[1] ?? ''
+
+  const todayRecords = useMemo(() => records.filter(record => record.ref_date === mostRecentDate), [records, mostRecentDate])
+  const previousRecords = useMemo(() => records.filter(record => record.ref_date === previousDate), [records, previousDate])
+
+  const aggregateDay = (source: PiperunRecord[]) => {
+    return source.reduce(
+      (acc, record) => {
+        acc.recebidas += record.oportunidades_recebidas || 0
+        acc.ganhas += record.oportunidades_ganhas || 0
+        acc.perdidas += record.oportunidades_perdidas || 0
+        return acc
+      },
+      { recebidas: 0, ganhas: 0, perdidas: 0 }
+    )
+  }
+
+  const todayTotals = useMemo(() => aggregateDay(todayRecords), [todayRecords])
+  const previousTotals = useMemo(() => aggregateDay(previousRecords), [previousRecords])
+
+  const backlogHoje = todayTotals.recebidas - todayTotals.ganhas - todayTotals.perdidas
+  const backlogOntem = previousTotals.recebidas - previousTotals.ganhas - previousTotals.perdidas
+
+  const winRateHoje = safeDivide(todayTotals.ganhas, todayTotals.recebidas) * 100
+  const winRateOntem = safeDivide(previousTotals.ganhas, previousTotals.recebidas) * 100
+
+  const percentChange = (current: number, previous: number) => {
+    if (previous === 0) {
+      if (current === 0) return 0
+      return 100
+    }
+    return ((current - previous) / previous) * 100
+  }
+
+  const lastUpdatedLabel = useMemo(() => {
+    const latestTimestamp = records.reduce((latest, record) => {
+      const current = record.updated_at ? new Date(record.updated_at).getTime() : 0
+      return current > latest ? current : latest
+    }, 0)
+    return latestTimestamp ? new Date(latestTimestamp).toLocaleString('pt-BR') : '-'
+  }, [records])
+
+  const dailyTrend = useMemo<AggregatedDay[]>(() => {
+    const map = new Map<string, AggregatedDay>()
+    records.forEach(record => {
+      const existing = map.get(record.ref_date)
+      const recebidas = record.oportunidades_recebidas || 0
+      const ganhas = record.oportunidades_ganhas || 0
+      const perdidas = record.oportunidades_perdidas || 0
+
+      if (existing) {
+        existing.recebidas += recebidas
+        existing.ganhas += ganhas
+        existing.perdidas += perdidas
+      } else {
+        map.set(record.ref_date, {
+          date: record.ref_date,
+          recebidas,
+          ganhas,
+          perdidas
+        })
+      }
+    })
+
+    return Array.from(map.values())
+      .sort((a, b) => new Date(a.date + 'T00:00:00').getTime() - new Date(b.date + 'T00:00:00').getTime())
+      .slice(-30)
+  }, [records])
+
+  const pipelineSnapshots = useMemo<PipelineSnapshot[]>(() => {
+    return pipelineGroups.map(group => {
+      const today = group.records.find(record => record.ref_date === mostRecentDate) || group.records[0]
+      const last7 = group.records.slice(0, 7)
+
+      const sum7 = last7.reduce(
+        (acc, record) => {
+          acc.recebidas += record.oportunidades_recebidas || 0
+          acc.ganhas += record.oportunidades_ganhas || 0
+          acc.perdidas += record.oportunidades_perdidas || 0
+          return acc
+        },
+        { recebidas: 0, ganhas: 0, perdidas: 0 }
+      )
+
+      const recebidasDia = today?.oportunidades_recebidas || 0
+      const ganhasDia = today?.oportunidades_ganhas || 0
+      const perdidasDia = today?.oportunidades_perdidas || 0
+
+      return {
+        id: group.id,
+        name: group.name,
+        recebidasDia,
+        ganhasDia,
+        perdidasDia,
+        winRateDia: safeDivide(ganhasDia, recebidasDia) * 100,
+        recebidas7: sum7.recebidas,
+        ganhas7: sum7.ganhas,
+        perdidas7: sum7.perdidas,
+        winRate7: safeDivide(sum7.ganhas, sum7.recebidas) * 100
+      }
+    }).sort((a, b) => b.ganhasDia - a.ganhasDia)
+  }, [pipelineGroups, mostRecentDate])
+
+  const pipelineComparisonSeries = useMemo(() => {
+    const dateMap = new Map<string, Record<string, number | string>>()
+
+    pipelineGroups.forEach(group => {
+      group.records.forEach(record => {
+        const entry = dateMap.get(record.ref_date) || { date: record.ref_date }
+        entry[`ganhas_${group.id}`] = ((entry[`ganhas_${group.id}`] as number) || 0) + (record.oportunidades_ganhas || 0)
+        dateMap.set(record.ref_date, entry)
+      })
+    })
+
+    return Array.from(dateMap.values())
+      .sort((a, b) => new Date(a.date as string + 'T00:00:00').getTime() - new Date(b.date as string + 'T00:00:00').getTime())
+      .slice(-30)
+  }, [pipelineGroups])
+
+  const pipelineLineKeys = pipelineGroups.map(group => ({ id: group.id, name: group.name }))
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl text-text">
+        <div className="mb-6 space-y-3">
+          <motion.div className="h-8 bg-bg2 rounded-lg" animate={{ opacity: [0.3, 0.8, 0.3] }} transition={{ duration: 1.4, repeat: Infinity }} />
+          <motion.div className="h-4 bg-bg2 rounded-lg w-1/3" animate={{ opacity: [0.3, 0.8, 0.3] }} transition={{ duration: 1.4, repeat: Infinity, delay: 0.2 }} />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+          {[...Array(4)].map((_, index) => (
+            <motion.div key={index} className="card h-24 bg-bg2/60" animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ duration: 1.4, repeat: Infinity, delay: index * 0.08 }} />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {[...Array(3)].map((_, index) => (
+            <motion.div key={index} className="card h-72 bg-bg2/60" animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ duration: 1.4, repeat: Infinity, delay: 0.4 + (index * 0.1) }} />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl text-text text-center pt-24 text-neonPink">
+        Erro ao carregar dados do PipeRun.
+      </div>
+    )
+  }
+
+  if (!records.length) {
+    return (
+      <div className="min-h-screen w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl text-text">
+        <motion.div className="card text-center py-16" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          Nenhum dado disponível para PipeRun no momento.
+        </motion.div>
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl text-text">
-      {/* Header */}
-      <motion.div 
-        className="mb-6"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        <motion.h1 
-          className="text-3xl font-bold text-text mb-2 flex items-center gap-3"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          PipeRun - Detalhes
+      <motion.div className="mb-6" initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+        <motion.h1 className="text-2xl sm:text-3xl font-bold text-text mb-2 flex flex-wrap items-center gap-3" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.1 }}>
+          PipeRun – Visão de Oportunidades
         </motion.h1>
-        <motion.p 
-          className="text-text2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-        >
-          Análise detalhada das oportunidades por pipeline
-        </motion.p>
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-        >
-          <Link to="/" className="text-blue-400 hover:underline mt-2 inline-block group">
-            <motion.span
-              className="inline-flex items-center"
-              whileHover={{ x: -5 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              ← Voltar ao Dashboard
+        <motion.div className="flex flex-wrap items-center gap-4 text-text2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.2 }}>
+          <span>Referência: {mostRecentDate ? new Date(mostRecentDate + 'T00:00:00').toLocaleDateString('pt-BR') : '-'}</span>
+          <span className="text-xs bg-bg2/60 text-text px-2 py-1 rounded-md">Última sincronização: {lastUpdatedLabel}</span>
+        </motion.div>
+        <motion.div className="mt-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.25 }}>
+          <span className="text-sm text-text2">Pipelines monitoradas: {pipelineGroups.length}</span>
+          <Link to="/" className="text-blue-400 hover:underline inline-flex items-center gap-2 group">
+            <motion.span whileHover={{ x: -4 }} transition={{ type: 'spring', stiffness: 320 }}>
+              Voltar ao dashboard
             </motion.span>
           </Link>
-          
-          {/* <motion.div
-            className="mt-3 p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-          >
-            <div className="flex items-center gap-2">
-              <span className="text-purple-400">🎯 Exibindo pipelines:</span>
-              <span className="text-text font-medium">78157, 78175, 78291</span>
-            </div>
-          </motion.div> */}
         </motion.div>
       </motion.div>
 
-      {/* Layout responsivo para as pipelines */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6">
-        {pipelines.map((pipeline, index) => {
-          const dailyData = preparePipelineData(pipeline.data)
-          const latestRecord = pipeline.data[0] || {}
-          const colors = ['#22D3EE', '#06B6D4', '#A855F7', '#EC4899', '#A855F7']
-          const color = colors[index % colors.length]
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6">
+        <motion.div className="card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} whileHover={{ y: -2, scale: 1.01 }}>
+          <p className="text-text2 text-xs uppercase tracking-wide mb-2">Oportunidades recebidas</p>
+          <p className="text-lg sm:text-xl font-semibold">{fmtNum(todayTotals.recebidas)}</p>
+          <p className="text-xs text-text2">Variação vs dia anterior: {percentLabel(percentChange(todayTotals.recebidas, previousTotals.recebidas))}</p>
+        </motion.div>
 
-          return (
-            <motion.div 
-              key={pipeline.name} 
-              className="card w-full min-h-0 flex flex-col" 
-              initial={{ opacity: 0, y: 30, scale: 0.95 }} 
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ 
-                duration: 0.6, 
-                delay: index * 0.1,
-                type: "spring",
-                stiffness: 100 
-              }}
-              whileHover={{ 
-                y: -5, 
-                scale: 1.02,
-                transition: { duration: 0.2 } 
-              }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <motion.h2 
-                className="text-lg sm:text-xl font-bold text-text mb-3 sm:mb-4 text-center"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.1 + 0.2 }}
-              >
-                {pipeline.name}
-              </motion.h2>
+        <motion.div className="card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} whileHover={{ y: -2, scale: 1.01 }}>
+          <p className="text-text2 text-xs uppercase tracking-wide mb-2">Oportunidades ganhas</p>
+          <p className="text-lg sm:text-xl font-semibold text-emerald-300">{fmtNum(todayTotals.ganhas)}</p>
+          <p className="text-xs text-text2">Variação vs dia anterior: {percentLabel(percentChange(todayTotals.ganhas, previousTotals.ganhas))}</p>
+        </motion.div>
 
-              {/* KPIs do Pipeline */}
-              <motion.div 
-                className="grid grid-cols-3 gap-1 sm:gap-2 mb-3 sm:mb-4"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 + 0.3 }}
-              >
-                <motion.div 
-                  className="text-center p-1 sm:p-2 bg-bg2 rounded-lg"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                >
-                  <motion.div 
-                    className="text-sm sm:text-lg font-bold text-text"
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ 
-                      duration: 0.6, 
-                      delay: index * 0.1 + 0.4,
-                      type: "spring",
-                      stiffness: 200 
-                    }}
-                  >
-                    {fmtNum(latestRecord.oportunidades_recebidas)}
-                  </motion.div>
-                  <div className="text-xs text-text2">Recebidas</div>
-                </motion.div>
-                <motion.div 
-                  className="text-center p-1 sm:p-2 bg-bg2 rounded-lg"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                >
-                  <motion.div 
-                    className="text-sm sm:text-lg font-bold text-green-400"
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ 
-                      duration: 0.6, 
-                      delay: index * 0.1 + 0.5,
-                      type: "spring",
-                      stiffness: 200 
-                    }}
-                  >
-                    {fmtNum(latestRecord.oportunidades_ganhas)}
-                  </motion.div>
-                  <div className="text-xs text-text2">Ganhas</div>
-                </motion.div>
-                <motion.div 
-                  className="text-center p-1 sm:p-2 bg-bg2 rounded-lg"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                >
-                  <motion.div 
-                    className="text-sm sm:text-lg font-bold text-red-400"
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ 
-                      duration: 0.6, 
-                      delay: index * 0.1 + 0.6,
-                      type: "spring",
-                      stiffness: 200 
-                    }}
-                  >
-                    {fmtNum(latestRecord.oportunidades_perdidas)}
-                  </motion.div>
-                  <div className="text-xs text-text2">Perdidas</div>
-                </motion.div>
-              </motion.div>
+        <motion.div className="card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} whileHover={{ y: -2, scale: 1.01 }}>
+          <p className="text-text2 text-xs uppercase tracking-wide mb-2">Oportunidades perdidas</p>
+          <p className="text-lg sm:text-xl font-semibold text-neonPink">{fmtNum(todayTotals.perdidas)}</p>
+          <p className="text-xs text-text2">Variação vs dia anterior: {percentLabel(percentChange(todayTotals.perdidas, previousTotals.perdidas))}</p>
+        </motion.div>
 
-              {/* Gráfico de Oportunidades Recebidas */}
-              <motion.div 
-                className="mb-4"
-                initial={{ opacity: 0, x: -30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 + 0.7 }}
-              >
-                <h4 className="text-xs sm:text-sm font-semibold text-text2 mb-2">Oportunidades Recebidas</h4>
-                <motion.div 
-                  className="h-24 sm:h-28 lg:h-32"
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={dailyData}>
-                      <XAxis 
-                        dataKey="date" 
-                        tickFormatter={(value) => {
-                          const date = new Date(value + 'T00:00:00')
-                          return date.getDate().toString()
-                        }}
-                        fontSize={10}
-                      />
-                      <Tooltip 
-                        labelFormatter={(value) => {
-                          const date = new Date(value + 'T00:00:00')
-                          return date.toLocaleDateString('pt-BR')
-                        }}
-                        formatter={(value: number) => [fmtNum(value), 'Recebidas']}
-                      />
-                      <Bar dataKey="recebidas" fill={color} radius={2} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </motion.div>
-              </motion.div>
-
-              {/* Gráfico de Ganhas vs Perdidas */}
-              <motion.div 
-                className="mb-4"
-                initial={{ opacity: 0, x: 30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 + 0.8 }}
-              >
-                <h4 className="text-xs sm:text-sm font-semibold text-text2 mb-2">Ganhas vs Perdidas</h4>
-                <motion.div 
-                  className="h-24 sm:h-28 lg:h-32"
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={dailyData}>
-                      <XAxis 
-                        dataKey="date" 
-                        tickFormatter={(value) => {
-                          const date = new Date(value + 'T00:00:00')
-                          return date.getDate().toString()
-                        }}
-                        fontSize={10}
-                      />
-                      <Tooltip 
-                        labelFormatter={(value) => {
-                          const date = new Date(value + 'T00:00:00')
-                          return date.toLocaleDateString('pt-BR')
-                        }}
-                        formatter={(value: number, name: string) => [
-                          fmtNum(value), 
-                          name === 'ganhas' ? 'Ganhas' : 'Perdidas'
-                        ]}
-                      />
-                      <Line type="monotone" dataKey="ganhas" stroke="#06B6D4" strokeWidth={2} name="ganhas" />
-                      <Line type="monotone" dataKey="perdidas" stroke="#f87171" strokeWidth={2} name="perdidas" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </motion.div>
-              </motion.div>
-
-              {/* Taxa de Conversão */}
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 + 0.9 }}
-              >
-                <h4 className="text-xs sm:text-sm font-semibold text-text2 mb-2">Taxa de Conversão (%)</h4>
-                <motion.div 
-                  className="h-24 sm:h-28 lg:h-32"
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={dailyData.map(item => ({
-                      ...item,
-                      taxa: item.recebidas > 0 ? (item.ganhas / item.recebidas * 100) : 0
-                    }))}>
-                      <XAxis 
-                        dataKey="date" 
-                        tickFormatter={(value) => {
-                          const date = new Date(value + 'T00:00:00')
-                          return date.getDate().toString()
-                        }}
-                        fontSize={10}
-                      />
-                      <Tooltip 
-                        labelFormatter={(value) => {
-                          const date = new Date(value + 'T00:00:00')
-                          return date.toLocaleDateString('pt-BR')
-                        }}
-                        formatter={(value: number) => [`${value.toFixed(1)}%`, 'Taxa de Conversão']}
-                      />
-                      <Line type="monotone" dataKey="taxa" stroke="#71F871" strokeWidth={2} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </motion.div>
-              </motion.div>
-            </motion.div>
-          )
-        })}
+        <motion.div className="card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} whileHover={{ y: -2, scale: 1.01 }}>
+          <p className="text-text2 text-xs uppercase tracking-wide mb-2">Taxa de ganho</p>
+          <p className={`text-lg sm:text-xl font-semibold ${winRateHoje >= 30 ? 'text-emerald-300' : 'text-text'}`}>{percentLabel(winRateHoje)}</p>
+          <p className="text-xs text-text2">Variação vs dia anterior: {percentLabel(percentChange(winRateHoje, winRateOntem))}</p>
+        </motion.div>
       </div>
 
-      {/* Tabela Consolidada */}
-      <motion.div 
-        className="card" 
-        initial={{ opacity: 0, y: 50 }} 
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.8 }}
-        whileHover={{ y: -2 }}
-      >
-        <motion.h3 
-          className="card-title"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 1 }}
-        >
-          Registros Recentes - Pipelines Específicas ({records.length} registros)
-        </motion.h3>
-        <motion.div 
-          className="overflow-x-auto"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 1.2 }}
-        >
-          <motion.table 
-            className="w-full text-sm"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 1.3 }}
-          >
-            <motion.thead
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4, delay: 1.4 }}
-            >
-              <tr className="border-b border-bg2">
-                <th className="text-left p-2">Data</th>
-                <th className="text-left p-2">Pipeline</th>
-                <th className="text-right p-2">Recebidas</th>
-                <th className="text-right p-2">Ganhas</th>
-                <th className="text-right p-2">Perdidas</th>
-                <th className="text-right p-2">Taxa Conversão</th>
-                <th className="text-right p-2">Última Atualização</th>
-              </tr>
-            </motion.thead>
-            <tbody>
-              {records.slice(0, 20).map((record, idx) => {
-                const taxa = record.oportunidades_recebidas > 0 ? 
-                  (record.oportunidades_ganhas / record.oportunidades_recebidas * 100) : 0
-                return (
-                  <motion.tr 
-                    key={idx} 
-                    className="border-b border-bg2/50 hover:bg-bg2/20"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: idx * 0.05 + 1.5 }}
-                    whileHover={{ 
-                      backgroundColor: "rgba(255, 255, 255, 0.05)",
-                      transition: { duration: 0.2 }
-                    }}
-                  >
-                    <td className="p-2">{new Date(record.ref_date + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
-                    <td className="p-2 truncate max-w-[200px]" title={record.pipeline_name}>
-                      {record.pipeline_name}
-                    </td>
-                    <td className="p-2 text-right">{fmtNum(record.oportunidades_recebidas)}</td>
-                    <td className="p-2 text-right text-green-400">{fmtNum(record.oportunidades_ganhas)}</td>
-                    <td className="p-2 text-right text-red-400">{fmtNum(record.oportunidades_perdidas)}</td>
-                    <td className="p-2 text-right">{taxa.toFixed(1)}%</td>
-                    <td className="p-2 text-right text-text2">
-                      {new Date(record.updated_at).toLocaleString('pt-BR')}
-                    </td>
-                  </motion.tr>
-                )
-              })}
-            </tbody>
-          </motion.table>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6">
+        <motion.div className="card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} whileHover={{ y: -2, scale: 1.01 }}>
+          <p className="text-text2 text-xs uppercase tracking-wide mb-2">Backlog do dia</p>
+          <p className="text-lg sm:text-xl font-semibold">{fmtNum(backlogHoje)}</p>
+          <p className="text-xs text-text2">Variação vs dia anterior: {percentLabel(percentChange(backlogHoje, backlogOntem))}</p>
         </motion.div>
+
+        <motion.div className="card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} whileHover={{ y: -2, scale: 1.01 }}>
+          <p className="text-text2 text-xs uppercase tracking-wide mb-2">Pipelines com ganho</p>
+          <p className="text-lg sm:text-xl font-semibold">{pipelineSnapshots.filter(item => item.ganhasDia > 0).length}</p>
+          <p className="text-xs text-text2">de {pipelineSnapshots.length} monitoradas</p>
+        </motion.div>
+
+        <motion.div className="card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} whileHover={{ y: -2, scale: 1.01 }}>
+          <p className="text-text2 text-xs uppercase tracking-wide mb-2">Recebidas nos últimos 7 dias</p>
+          <p className="text-lg sm:text-xl font-semibold">{fmtNum(pipelineSnapshots.reduce((acc, item) => acc + item.recebidas7, 0))}</p>
+          <p className="text-xs text-text2">Ganhos em 7 dias: {fmtNum(pipelineSnapshots.reduce((acc, item) => acc + item.ganhas7, 0))}</p>
+        </motion.div>
+
+        <motion.div className="card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }} whileHover={{ y: -2, scale: 1.01 }}>
+          <p className="text-text2 text-xs uppercase tracking-wide mb-2">Taxa de ganho 7 dias</p>
+          <p className="text-lg sm:text-xl font-semibold text-blue-300">{percentLabel(safeDivide(pipelineSnapshots.reduce((acc, item) => acc + item.ganhas7, 0), pipelineSnapshots.reduce((acc, item) => acc + item.recebidas7, 0)) * 100)}</p>
+          <p className="text-xs text-text2">Indicador de tendência semanal</p>
+        </motion.div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6 mb-6">
+        <motion.div className="card" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} whileHover={{ y: -2 }}>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="card-title text-sm sm:text-lg">Fluxo diário de oportunidades</h3>
+            <span className="text-xs text-text2">Últimos 30 dias</span>
+          </div>
+          <div className="h-72">
+            {dailyTrend.length ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={dailyTrend}>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                  <XAxis dataKey="date" tickFormatter={value => new Date(value + 'T00:00:00').getDate().toString()} fontSize={10} />
+                  <YAxis yAxisId="left" fontSize={10} tickFormatter={value => fmtNum(value as number)} width={80} />
+                  <Tooltip
+                    labelFormatter={value => new Date(value + 'T00:00:00').toLocaleDateString('pt-BR')}
+                    formatter={(value, name) => [fmtNum(value as number), name.charAt(0).toUpperCase() + name.slice(1)]}
+                  />
+                  <Legend formatter={value => value.charAt(0).toUpperCase() + value.slice(1)} />
+                  <Bar yAxisId="left" dataKey="recebidas" fill="#22d3ee" radius={[4, 4, 0, 0]} name="Recebidas" />
+                  <Line yAxisId="left" type="monotone" dataKey="ganhas" stroke="#22c55e" strokeWidth={3} dot={{ r: 2 }} name="Ganhas" />
+                  <Line yAxisId="left" type="monotone" dataKey="perdidas" stroke="#f97316" strokeWidth={3} strokeDasharray="4 4" dot={{ r: 2 }} name="Perdidas" />
+                </ComposedChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-text2 text-sm">
+                Sem histórico disponível para o período.
+              </div>
+            )}
+          </div>
+        </motion.div>
+
+        <motion.div className="card" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }} whileHover={{ y: -2 }}>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="card-title text-sm sm:text-lg">Ganho por pipeline ao longo do tempo</h3>
+            <span className="text-xs text-text2">Últimos 30 dias</span>
+          </div>
+          <div className="h-72">
+            {pipelineComparisonSeries.length ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={pipelineComparisonSeries}>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                  <XAxis dataKey="date" tickFormatter={value => new Date(value + 'T00:00:00').getDate().toString()} fontSize={10} />
+                  <YAxis fontSize={10} tickFormatter={value => fmtNum(value as number)} width={80} />
+                  <Tooltip
+                    labelFormatter={value => new Date(value + 'T00:00:00').toLocaleDateString('pt-BR')}
+                    formatter={(value, name) => [fmtNum(value as number), name]}
+                  />
+                  <Legend />
+                  {pipelineLineKeys.map((pipeline, index) => (
+                    <Line
+                      key={pipeline.id}
+                      type="monotone"
+                      dataKey={`ganhas_${pipeline.id}`}
+                      stroke={[ '#22c55e', '#38bdf8', '#f97316', '#a855f7', '#ec4899' ][index % 5]}
+                      strokeWidth={3}
+                      dot={{ r: 2 }}
+                      name={`${pipeline.name} - ganhas`}
+                    />
+                  ))}
+                </ComposedChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-text2 text-sm">
+                Sem histórico suficiente para análise por pipeline.
+              </div>
+            )}
+          </div>
+        </motion.div>
+      </div>
+
+      <motion.div className="card" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} whileHover={{ y: -2 }}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <h3 className="card-title">Painel por pipeline</h3>
+          <span className="text-xs text-text2">Resumo diário e dos últimos 7 dias</span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs sm:text-sm">
+            <thead>
+              <tr className="border-b border-bg2">
+                <th className="text-left p-2">Pipeline</th>
+                <th className="text-right p-2">Recebidas (dia)</th>
+                <th className="text-right p-2">Ganhas (dia)</th>
+                <th className="text-right p-2">Perdidas (dia)</th>
+                <th className="text-right p-2">Win rate dia</th>
+                <th className="text-right p-2">Recebidas (7d)</th>
+                <th className="text-right p-2">Ganhas (7d)</th>
+                <th className="text-right p-2">Perdidas (7d)</th>
+                <th className="text-right p-2">Win rate 7d</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pipelineSnapshots.length ? (
+                pipelineSnapshots.map((pipeline, index) => (
+                  <motion.tr
+                    key={pipeline.id}
+                    className="border-b border-bg2/40 hover:bg-bg2/20"
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.25, delay: index * 0.03 }}
+                  >
+                    <td className="p-2 truncate max-w-[220px]" title={pipeline.name}>{pipeline.name}</td>
+                    <td className="p-2 text-right">{fmtNum(pipeline.recebidasDia)}</td>
+                    <td className="p-2 text-right text-emerald-300">{fmtNum(pipeline.ganhasDia)}</td>
+                    <td className="p-2 text-right text-neonPink">{fmtNum(pipeline.perdidasDia)}</td>
+                    <td className="p-2 text-right">{percentLabel(pipeline.winRateDia)}</td>
+                    <td className="p-2 text-right">{fmtNum(pipeline.recebidas7)}</td>
+                    <td className="p-2 text-right text-emerald-300">{fmtNum(pipeline.ganhas7)}</td>
+                    <td className="p-2 text-right text-neonPink">{fmtNum(pipeline.perdidas7)}</td>
+                    <td className="p-2 text-right">{percentLabel(pipeline.winRate7)}</td>
+                  </motion.tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={9} className="text-center text-text2 p-4">
+                    Não encontramos pipelines para o período selecionado.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </motion.div>
     </div>
   )
