@@ -318,7 +318,7 @@ export default function EvolutionDetail() {
         <motion.div className="card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} whileHover={{ y: -2, scale: 1.01 }}>
           <p className="text-text2 text-xs uppercase tracking-wide mb-2">Chats ativos</p>
           <p className="text-lg sm:text-xl font-semibold">{fmtNum(todayTotals.activeChats)}</p>
-          <p className="text-xs text-text2">Cliente -> Atendimento: {fmtNum(todayTotals.clientMessages)} | Atendimento -> Cliente: {fmtNum(todayTotals.responseMessages)}</p>
+          <p className="text-xs text-text2">Cliente {'>'} Atendimento: {fmtNum(todayTotals.clientMessages)} | Atendimento {'>'} Cliente: {fmtNum(todayTotals.responseMessages)}</p>
         </motion.div>
       </div>
 
@@ -342,9 +342,9 @@ export default function EvolutionDetail() {
                       const key = (item?.dataKey as string) || ''
                       switch (key) {
                         case 'clientMessages':
-                          return [fmtNum(value as number), 'Cliente -> Atendimento']
+                          return [fmtNum(value as number), 'Cliente > Atendimento']
                         case 'responseMessages':
-                          return [fmtNum(value as number), 'Atendimento -> Cliente']
+                          return [fmtNum(value as number), 'Atendimento > Cliente']
                         case 'deliveredRate':
                           return [percentLabel(value as number), 'Taxa de entrega']
                         case 'readRate':
@@ -361,9 +361,9 @@ export default function EvolutionDetail() {
                       const key = (entry?.dataKey as string) || value
                       switch (key) {
                         case 'clientMessages':
-                          return 'Cliente -> Atendimento'
+                          return 'Cliente > Atendimento'
                         case 'responseMessages':
-                          return 'Atendimento -> Cliente'
+                          return 'Atendimento > Cliente'
                         case 'deliveredRate':
                           return 'Taxa de entrega'
                         case 'readRate':
@@ -376,8 +376,8 @@ export default function EvolutionDetail() {
                     }}
                   />
                   <Area yAxisId="left" type="monotone" dataKey="totalMessages" stroke="#2563eb" fill="#2563eb" fillOpacity={0.12} strokeWidth={2} name="Total de mensagens" />
-                  <Bar yAxisId="left" dataKey="clientMessages" fill="#38bdf8" radius={[4, 4, 0, 0]} name="Cliente -> Atendimento" />
-                  <Bar yAxisId="left" dataKey="responseMessages" fill="#22c55e" radius={[4, 4, 0, 0]} opacity={0.6} name="Atendimento -> Cliente" />
+                  <Bar yAxisId="left" dataKey="clientMessages" fill="#38bdf8" radius={[4, 4, 0, 0]} name="Cliente > Atendimento" />
+                  <Bar yAxisId="left" dataKey="responseMessages" fill="#22c55e" radius={[4, 4, 0, 0]} opacity={0.6} name="Atendimento > Cliente" />
                   <Line yAxisId="right" type="monotone" dataKey="deliveredRate" stroke="#facc15" strokeWidth={3} dot={{ r: 2 }} name="Taxa de entrega" />
                   <Line yAxisId="right" type="monotone" dataKey="readRate" stroke="#f97316" strokeWidth={2} strokeDasharray="4 4" dot={{ r: 2 }} name="Taxa de leitura" />
                 </ComposedChart>
