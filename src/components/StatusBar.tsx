@@ -52,7 +52,7 @@ export default function StatusBar({ cycle }: StatusBarProps) {
           <Link to="/meta-ads" className="hover:text-neonAqua transition-colors whitespace-nowrap">Meta Ads</Link>
           <Link to="/google-ads" className="hover:text-neonAqua transition-colors whitespace-nowrap">Google Ads</Link>
           <Link to="/piperun" className="hover:text-neonAqua transition-colors">PipeRun</Link>
-          <a href="#" className="hover:text-neonAqua transition-colors hidden sm:inline">Conta Azul</a>
+          <Link to="/conta-azul" className="hover:text-neonAqua transition-colors hidden sm:inline">Conta Azul</Link>
           <a href="#" className="hover:text-neonAqua transition-colors hidden sm:inline">CPJ-3C</a>
           <Link to="/ti" className="hover:text-neonAqua transition-colors hidden lg:inline">T.I</Link>
           <a href="#" className="hover:text-neonAqua transition-colors hidden lg:inline">Liderhub</a>
@@ -62,7 +62,7 @@ export default function StatusBar({ cycle }: StatusBarProps) {
           <a href="#" className="hover:text-neonAqua transition-colors hidden lg:inline">Portainer</a>
           <a href="#" className="hover:text-neonAqua transition-colors hidden lg:inline">RH</a>
         </nav>
-      </motion.div>
+      </motion.div> 
       <motion.span
         className="text-sm sm:text-base text-text font-semibold whitespace-nowrap"
         initial={{ opacity: 0, x: 20 }}
