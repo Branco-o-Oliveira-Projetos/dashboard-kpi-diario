@@ -280,11 +280,15 @@ export default function N8nDetail() {
                   <XAxis dataKey="date" tickFormatter={value => new Date(value + 'T00:00:00').getDate().toString()} fontSize={10} />
                   <YAxis yAxisId="left" fontSize={10} tickFormatter={value => fmtNum(value as number)} width={90} />
                   <YAxis yAxisId="right" orientation="right" fontSize={10} tickFormatter={value => percentLabel(value as number).replace('%', '')} />
-                  <Tooltip
+                                    <Tooltip
                     labelFormatter={value => new Date(value + 'T00:00:00').toLocaleDateString('pt-BR')}
-                    formatter={(value, name) => {
-                      if (name === 'successRate') return [percentLabel(value as number), 'Taxa de sucesso']
-                      return [fmtNum(value as number), name === 'success' ? 'Sucesso' : name === 'failed' ? 'Falhas' : 'Execuções']
+                    formatter={(value, _name, item) => {
+                      const key = (item?.dataKey as string) || ''
+                      if (key === 'successRate') return [percentLabel(value as number), 'Taxa de sucesso']
+                      if (key === 'success') return [fmtNum(value as number), 'Sucesso']
+                      if (key === 'failed') return [fmtNum(value as number), 'Falhas']
+                      if (key === 'totalRuns') return [fmtNum(value as number), 'Execuções']
+                      return [fmtNum(value as number), key]
                     }}
                   />
                   <Legend formatter={value => {

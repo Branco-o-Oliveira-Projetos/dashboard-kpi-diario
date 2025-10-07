@@ -40,9 +40,9 @@ export default function StatusBar({ cycle }: StatusBarProps) {
         >
           Auto refresh 3 min | ciclo #{cycle}
         </motion.span>
-      
-      {/* Links para pÃ¡ginas detalhadas */}
-      <motion.div 
+
+      {/* Links para páginas detalhadas */}
+      <motion.div
         className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto"
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
@@ -57,9 +57,7 @@ export default function StatusBar({ cycle }: StatusBarProps) {
           <Link to="/ti" className="hover:text-neonAqua transition-colors hidden lg:inline">T.I</Link>
           <a href="#" className="hover:text-neonAqua transition-colors hidden lg:inline">Liderhub</a>
           <Link to="/n8n" className="hover:text-neonAqua transition-colors">N8N</Link>
-          <a href="#" className="hover:text-neonAqua transition-colors hidden lg:inline">GitHub</a>
           <Link to="/evolution" className="hover:text-neonAqua transition-colors">Evolution</Link>
-          <a href="#" className="hover:text-neonAqua transition-colors hidden lg:inline">Portainer</a>
           <a href="#" className="hover:text-neonAqua transition-colors hidden lg:inline">RH</a>
         </nav>
       </motion.div> 

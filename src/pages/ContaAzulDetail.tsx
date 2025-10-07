@@ -405,9 +405,12 @@ export default function ContaAzulDetail() {
                   <YAxis fontSize={10} tickFormatter={value => fmtMoney(value as number)} width={90} />
                   <Tooltip
                     labelFormatter={formatDateLabel}
-                    formatter={(value, name) => {
-                      if (name === 'saldo') return [fmtMoney(value as number), 'Saldo projetado']
-                      return [fmtMoney(value as number), name === 'recebiveis' ? 'Recebiveis' : 'Pagaveis']
+                    formatter={(value, _name, item) => {
+                      const key = (item?.dataKey as string) || ''
+                      if (key === 'saldo') return [fmtMoney(value as number), PROJECAO_LEGEND_LABELS.saldo]
+                      if (key === 'recebiveis') return [fmtMoney(value as number), PROJECAO_LEGEND_LABELS.recebiveis]
+                      if (key === 'pagaveis') return [fmtMoney(value as number), PROJECAO_LEGEND_LABELS.pagaveis]
+                      return [fmtMoney(value as number), key]
                     }}
                   />
                   <Legend

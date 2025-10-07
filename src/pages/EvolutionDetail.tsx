@@ -318,7 +318,7 @@ export default function EvolutionDetail() {
         <motion.div className="card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} whileHover={{ y: -2, scale: 1.01 }}>
           <p className="text-text2 text-xs uppercase tracking-wide mb-2">Chats ativos</p>
           <p className="text-lg sm:text-xl font-semibold">{fmtNum(todayTotals.activeChats)}</p>
-          <p className="text-xs text-text2">Cliente → Atendimento: {fmtNum(todayTotals.clientMessages)} | Atendimento → Cliente: {fmtNum(todayTotals.responseMessages)}</p>
+          <p className="text-xs text-text2">Cliente -> Atendimento: {fmtNum(todayTotals.clientMessages)} | Atendimento -> Cliente: {fmtNum(todayTotals.responseMessages)}</p>
         </motion.div>
       </div>
 
@@ -336,24 +336,48 @@ export default function EvolutionDetail() {
                   <XAxis dataKey="date" tickFormatter={value => new Date(value + 'T00:00:00').getDate().toString()} fontSize={10} />
                   <YAxis yAxisId="left" fontSize={10} tickFormatter={value => fmtNum(value as number)} width={90} />
                   <YAxis yAxisId="right" orientation="right" fontSize={10} tickFormatter={value => percentLabel(value as number).replace('%', '')} />
-                  <Tooltip
+                                    <Tooltip
                     labelFormatter={value => new Date(value + 'T00:00:00').toLocaleDateString('pt-BR')}
-                    formatter={(value, name) => {
-                      if (name === 'deliveredRate') return [percentLabel(value as number), 'Taxa de entrega']
-                      if (name === 'readRate') return [percentLabel(value as number), 'Taxa de leitura']
-                      return [fmtNum(value as number), name === 'clientMessages' ? 'Cliente → Atendimento' : name === 'responseMessages' ? 'Atendimento → Cliente' : 'Mensagens']
+                    formatter={(value, _name, item) => {
+                      const key = (item?.dataKey as string) || ''
+                      switch (key) {
+                        case 'clientMessages':
+                          return [fmtNum(value as number), 'Cliente -> Atendimento']
+                        case 'responseMessages':
+                          return [fmtNum(value as number), 'Atendimento -> Cliente']
+                        case 'deliveredRate':
+                          return [percentLabel(value as number), 'Taxa de entrega']
+                        case 'readRate':
+                          return [percentLabel(value as number), 'Taxa de leitura']
+                        case 'totalMessages':
+                          return [fmtNum(value as number), 'Total de mensagens']
+                        default:
+                          return [fmtNum(value as number), key]
+                      }
                     }}
                   />
-                  <Legend formatter={value => {
-                    if (value === 'clientMessages') return 'Cliente → Atendimento'
-                    if (value === 'responseMessages') return 'Atendimento → Cliente'
-                    if (value === 'deliveredRate') return 'Taxa de entrega'
-                    if (value === 'readRate') return 'Taxa de leitura'
-                    return 'Total de mensagens'
-                  }} />
+                                    <Legend
+                    formatter={(value, entry) => {
+                      const key = (entry?.dataKey as string) || value
+                      switch (key) {
+                        case 'clientMessages':
+                          return 'Cliente -> Atendimento'
+                        case 'responseMessages':
+                          return 'Atendimento -> Cliente'
+                        case 'deliveredRate':
+                          return 'Taxa de entrega'
+                        case 'readRate':
+                          return 'Taxa de leitura'
+                        case 'totalMessages':
+                          return 'Total de mensagens'
+                        default:
+                          return value
+                      }
+                    }}
+                  />
                   <Area yAxisId="left" type="monotone" dataKey="totalMessages" stroke="#2563eb" fill="#2563eb" fillOpacity={0.12} strokeWidth={2} name="Total de mensagens" />
-                  <Bar yAxisId="left" dataKey="clientMessages" fill="#38bdf8" radius={[4, 4, 0, 0]} name="Cliente → Atendimento" />
-                  <Bar yAxisId="left" dataKey="responseMessages" fill="#22c55e" radius={[4, 4, 0, 0]} opacity={0.6} name="Atendimento → Cliente" />
+                  <Bar yAxisId="left" dataKey="clientMessages" fill="#38bdf8" radius={[4, 4, 0, 0]} name="Cliente -> Atendimento" />
+                  <Bar yAxisId="left" dataKey="responseMessages" fill="#22c55e" radius={[4, 4, 0, 0]} opacity={0.6} name="Atendimento -> Cliente" />
                   <Line yAxisId="right" type="monotone" dataKey="deliveredRate" stroke="#facc15" strokeWidth={3} dot={{ r: 2 }} name="Taxa de entrega" />
                   <Line yAxisId="right" type="monotone" dataKey="readRate" stroke="#f97316" strokeWidth={2} strokeDasharray="4 4" dot={{ r: 2 }} name="Taxa de leitura" />
                 </ComposedChart>
@@ -379,14 +403,23 @@ export default function EvolutionDetail() {
                   <XAxis dataKey="date" tickFormatter={value => new Date(value + 'T00:00:00').getDate().toString()} fontSize={10} />
                   <YAxis yAxisId="left" fontSize={10} tickFormatter={value => secondsToLabel(value as number)} width={90} />
                   <YAxis yAxisId="right" orientation="right" fontSize={10} tickFormatter={value => fmtNum(value as number)} />
-                  <Tooltip
+                                    <Tooltip
                     labelFormatter={value => new Date(value + 'T00:00:00').toLocaleDateString('pt-BR')}
-                    formatter={(value, name) => {
-                      if (name === 'responseTime') return [secondsToLabel(value as number), 'Tempo de resposta']
-                      return [fmtNum(value as number), 'Chats ativos']
+                    formatter={(value, _name, item) => {
+                      const key = (item?.dataKey as string) || ''
+                      if (key === 'responseTime') return [secondsToLabel(value as number), 'Tempo de resposta']
+                      if (key === 'chatsActive') return [fmtNum(value as number), 'Chats ativos']
+                      return [fmtNum(value as number), key]
                     }}
                   />
-                  <Legend formatter={value => value === 'responseTime' ? 'Tempo de resposta' : 'Chats ativos'} />
+                                    <Legend
+                    formatter={(value, entry) => {
+                      const key = (entry?.dataKey as string) || value
+                      if (key === 'responseTime') return 'Tempo de resposta'
+                      if (key === 'chatsActive') return 'Chats ativos'
+                      return value
+                    }}
+                  />
                   <Area yAxisId="left" type="monotone" dataKey="responseTime" stroke="#a855f7" fill="#a855f7" fillOpacity={0.12} strokeWidth={2} name="Tempo de resposta" />
                   <Bar yAxisId="right" dataKey="chatsActive" fill="#22d3ee" radius={[4, 4, 0, 0]} name="Chats ativos" />
                 </ComposedChart>

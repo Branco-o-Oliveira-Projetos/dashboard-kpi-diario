@@ -82,6 +82,20 @@ const toPercentageLabel = (value: number) => {
   return `${value.toFixed(1)}%`
 }
 
+
+const TREND_LABELS: Record<string, string> = {
+  spend: 'Investimento',
+  leads: 'Leads',
+  cpl: 'CPL',
+  cpc: 'CPC',
+  conversion: 'Conversão',
+}
+
+const REACH_LABELS: Record<string, string> = {
+  reach: 'Alcance',
+  impressions: 'Impressões',
+  frequency: 'Frequência',
+}
 export default function MetaAdsDetail() {
   const [selectedCampaign, setSelectedCampaign] = useState('')
   const [selectedAccount, setSelectedAccount] = useState('')
@@ -413,21 +427,29 @@ export default function MetaAdsDetail() {
                   <YAxis yAxisId="right" orientation="right" fontSize={10} tickFormatter={value => fmtNum(value as number)} />
                   <Tooltip
                     labelFormatter={value => new Date(value + 'T00:00:00').toLocaleDateString('pt-BR')}
-                    formatter={(value, name) => {
-                      if (name === 'leads') return [fmtNum(value as number), 'Leads']
-                      if (name === 'cpl') return [fmtMoney(value as number), 'CPL']
-                      if (name === 'cpc') return [fmtMoney(value as number), 'CPC']
-                      if (name === 'conversion') return [toPercentageLabel(value as number), 'Conversão']
-                      return [fmtMoney(value as number), 'Investimento']
+                    formatter={(value, _name, item) => {
+                      const key = (item?.dataKey as string) || ''
+                      switch (key) {
+                        case 'leads':
+                          return [fmtNum(value as number), 'Leads']
+                        case 'cpl':
+                          return [fmtMoney(value as number), 'CPL']
+                        case 'cpc':
+                          return [fmtMoney(value as number), 'CPC']
+                        case 'conversion':
+                          return [toPercentageLabel(value as number), 'Conversão']
+                        case 'spend':
+                        default:
+                          return [fmtMoney(value as number), 'Investimento']
+                      }
                     }}
                   />
-                  <Legend formatter={value => {
-                    if (value === 'leads') return 'Leads'
-                    if (value === 'cpl') return 'CPL'
-                    if (value === 'cpc') return 'CPC'
-                    if (value === 'conversion') return 'Conversão'
-                    return 'Investimento'
-                  }} />
+                  <Legend
+                    formatter={(value, entry) => {
+                      const key = (entry?.dataKey as string) || value
+                      return TREND_LABELS[key] ?? value
+                    }}
+                  />
                   <Area yAxisId="left" type="monotone" dataKey="spend" stroke="#2563eb" fill="#2563eb" fillOpacity={0.14} strokeWidth={2} name="Investimento" />
                   <Bar yAxisId="right" dataKey="leads" fill="#22d3ee" radius={[4, 4, 0, 0]} name="Leads" />
                   <Line yAxisId="left" type="monotone" dataKey="cpl" stroke="#facc15" strokeWidth={2} dot={{ r: 2 }} name="CPL" />
@@ -457,16 +479,26 @@ export default function MetaAdsDetail() {
                   <YAxis yAxisId="right" orientation="right" fontSize={10} tickFormatter={value => (value as number).toFixed(1)} />
                   <Tooltip
                     labelFormatter={value => new Date(value + 'T00:00:00').toLocaleDateString('pt-BR')}
-                    formatter={(value, name) => {
-                      if (name === 'frequency') return [(value as number).toFixed(2), 'Frequência']
-                      return [fmtNum(value as number), name === 'reach' ? 'Alcance' : 'Impressões']
+                    formatter={(value, _name, item) => {
+                      const key = (item?.dataKey as string) || ''
+                      switch (key) {
+                        case 'reach':
+                          return [fmtNum(value as number), 'Alcance']
+                        case 'impressions':
+                          return [fmtNum(value as number), 'Impressões']
+                        case 'frequency':
+                          return [(value as number).toFixed(2), 'Frequência']
+                        default:
+                          return [fmtNum(value as number), key]
+                      }
                     }}
                   />
-                  <Legend formatter={value => {
-                    if (value === 'reach') return 'Alcance'
-                    if (value === 'frequency') return 'Frequência'
-                    return 'Impressões'
-                  }} />
+                  <Legend
+                    formatter={(value, entry) => {
+                      const key = (entry?.dataKey as string) || value
+                      return REACH_LABELS[key] ?? value
+                    }}
+                  />
                   <Bar yAxisId="left" dataKey="reach" fill="#818cf8" radius={[4, 4, 0, 0]} name="Alcance" />
                   <Bar yAxisId="left" dataKey="impressions" fill="#38bdf8" radius={[4, 4, 0, 0]} opacity={0.4} name="Impressões" />
                   <Line yAxisId="right" type="monotone" dataKey="frequency" stroke="#f97316" strokeWidth={3} dot={{ r: 2 }} name="Frequência" />

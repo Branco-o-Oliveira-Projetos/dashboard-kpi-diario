@@ -76,6 +76,20 @@ const percentLabel = (value: number) => {
   return `${value.toFixed(1)}%`
 }
 
+
+const PERFORMANCE_LABELS: Record<string, string> = {
+  spend: 'Investimento',
+  leads: 'Leads',
+  clicks: 'Cliques',
+  conversion: 'Conversão',
+}
+
+const EFFICIENCY_LABELS: Record<string, string> = {
+  spend: 'Investimento',
+  roas: 'ROAS',
+  cpl: 'CPL',
+  cpc: 'CPC',
+}
 export default function GoogleAdsDetail() {
   const [selectedAccount, setSelectedAccount] = useState('')
   const [selectedCampaign, setSelectedCampaign] = useState('')
@@ -420,19 +434,27 @@ export default function GoogleAdsDetail() {
                   <YAxis yAxisId="right" orientation="right" fontSize={10} tickFormatter={value => fmtNum(value as number)} />
                   <Tooltip
                     labelFormatter={value => new Date(value + 'T00:00:00').toLocaleDateString('pt-BR')}
-                    formatter={(value, name) => {
-                      if (name === 'leads') return [fmtNum(value as number), 'Leads']
-                      if (name === 'clicks') return [fmtNum(value as number), 'Cliques']
-                      if (name === 'conversion') return [percentLabel(value as number), 'Conversão']
-                      return [fmtMoney(value as number), 'Investimento']
+                    formatter={(value, _name, item) => {
+                      const key = (item?.dataKey as string) || ''
+                      switch (key) {
+                        case 'leads':
+                          return [fmtNum(value as number), 'Leads']
+                        case 'clicks':
+                          return [fmtNum(value as number), 'Cliques']
+                        case 'conversion':
+                          return [percentLabel(value as number), 'Conversão']
+                        case 'spend':
+                        default:
+                          return [fmtMoney(value as number), 'Investimento']
+                      }
                     }}
                   />
-                  <Legend formatter={value => {
-                    if (value === 'leads') return 'Leads'
-                    if (value === 'clicks') return 'Cliques'
-                    if (value === 'conversion') return 'Conversão'
-                    return 'Investimento'
-                  }} />
+                  <Legend
+                    formatter={(value, entry) => {
+                      const key = (entry?.dataKey as string) || value
+                      return PERFORMANCE_LABELS[key] ?? value
+                    }}
+                  />
                   <Area yAxisId="left" type="monotone" dataKey="spend" stroke="#2563eb" fill="#2563eb" fillOpacity={0.12} strokeWidth={2} name="Investimento" />
                   <Bar yAxisId="right" dataKey="leads" fill="#22c55e" radius={[4, 4, 0, 0]} name="Leads" />
                   <Line yAxisId="right" type="monotone" dataKey="clicks" stroke="#facc15" strokeWidth={2} dot={{ r: 2 }} name="Cliques" />
@@ -462,19 +484,27 @@ export default function GoogleAdsDetail() {
                   <YAxis yAxisId="right" orientation="right" fontSize={10} tickFormatter={value => value.toFixed(2)} />
                   <Tooltip
                     labelFormatter={value => new Date(value + 'T00:00:00').toLocaleDateString('pt-BR')}
-                    formatter={(value, name) => {
-                      if (name === 'roas') return [(value as number).toFixed(2) + 'x', 'ROAS']
-                      if (name === 'cpl') return [fmtMoney(value as number), 'CPL']
-                      if (name === 'cpc') return [fmtMoney(value as number), 'CPC']
-                      return [fmtMoney(value as number), 'Investimento']
+                    formatter={(value, _name, item) => {
+                      const key = (item?.dataKey as string) || ''
+                      switch (key) {
+                        case 'roas':
+                          return [(value as number).toFixed(2) + 'x', 'ROAS']
+                        case 'cpl':
+                          return [fmtMoney(value as number), 'CPL']
+                        case 'cpc':
+                          return [fmtMoney(value as number), 'CPC']
+                        case 'spend':
+                        default:
+                          return [fmtMoney(value as number), 'Investimento']
+                      }
                     }}
                   />
-                  <Legend formatter={value => {
-                    if (value === 'roas') return 'ROAS'
-                    if (value === 'cpl') return 'CPL'
-                    if (value === 'cpc') return 'CPC'
-                    return 'Investimento'
-                  }} />
+                  <Legend
+                    formatter={(value, entry) => {
+                      const key = (entry?.dataKey as string) || value
+                      return EFFICIENCY_LABELS[key] ?? value
+                    }}
+                  />
                   <Bar yAxisId="left" dataKey="spend" fill="#60a5fa" radius={[4, 4, 0, 0]} name="Investimento" />
                   <Line yAxisId="right" type="monotone" dataKey="roas" stroke="#22c55e" strokeWidth={3} dot={{ r: 2 }} name="ROAS" />
                   <Line yAxisId="right" type="monotone" dataKey="cpl" stroke="#f97316" strokeWidth={2} strokeDasharray="4 4" dot={{ r: 2 }} name="CPL" />

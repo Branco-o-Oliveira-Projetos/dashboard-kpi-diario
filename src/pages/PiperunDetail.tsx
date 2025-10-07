@@ -1,5 +1,5 @@
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
@@ -68,14 +68,31 @@ export default function PiperunDetail() {
     refetchInterval: 2 * 60 * 1000
   })
 
+  const [selectedPipeline, setSelectedPipeline] = useState<'all' | string>('all')
+
   const records = useMemo<PiperunRecord[]>(() => {
     if (!Array.isArray(data)) return []
     return (data as PiperunRecord[]).filter(item => !!item.ref_date)
   }, [data])
 
+  const availablePipelines = useMemo(() => {
+    const map = new Map<string, string>()
+    records.forEach(record => {
+      if (!map.has(record.pipeline_id)) {
+        map.set(record.pipeline_id, record.pipeline_name)
+      }
+    })
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }))
+  }, [records])
+
+  const filteredRecords = useMemo(() => {
+    if (selectedPipeline === 'all') return records
+    return records.filter(record => record.pipeline_id === selectedPipeline)
+  }, [records, selectedPipeline])
+
   const pipelineGroups = useMemo<PipelineGroup[]>(() => {
     const map = new Map<string, PipelineGroup>()
-    records.forEach(record => {
+    filteredRecords.forEach(record => {
       const existing = map.get(record.pipeline_id)
       if (existing) {
         existing.records.push(record)
@@ -92,18 +109,18 @@ export default function PiperunDetail() {
       ...group,
       records: [...group.records].sort((a, b) => new Date(b.ref_date + 'T00:00:00').getTime() - new Date(a.ref_date + 'T00:00:00').getTime())
     }))
-  }, [records])
+  }, [filteredRecords])
 
   const orderedDates = useMemo(() => {
-    return Array.from(new Set(records.map(record => record.ref_date)))
+    return Array.from(new Set(filteredRecords.map(record => record.ref_date)))
       .sort((a, b) => new Date(b + 'T00:00:00').getTime() - new Date(a + 'T00:00:00').getTime())
-  }, [records])
+  }, [filteredRecords])
 
   const mostRecentDate = orderedDates[0] ?? ''
   const previousDate = orderedDates[1] ?? ''
 
-  const todayRecords = useMemo(() => records.filter(record => record.ref_date === mostRecentDate), [records, mostRecentDate])
-  const previousRecords = useMemo(() => records.filter(record => record.ref_date === previousDate), [records, previousDate])
+  const todayRecords = useMemo(() => filteredRecords.filter(record => record.ref_date === mostRecentDate), [filteredRecords, mostRecentDate])
+  const previousRecords = useMemo(() => filteredRecords.filter(record => record.ref_date === previousDate), [filteredRecords, previousDate])
 
   const aggregateDay = (source: PiperunRecord[]) => {
     return source.reduce(
@@ -135,16 +152,16 @@ export default function PiperunDetail() {
   }
 
   const lastUpdatedLabel = useMemo(() => {
-    const latestTimestamp = records.reduce((latest, record) => {
+    const latestTimestamp = filteredRecords.reduce((latest, record) => {
       const current = record.updated_at ? new Date(record.updated_at).getTime() : 0
       return current > latest ? current : latest
     }, 0)
     return latestTimestamp ? new Date(latestTimestamp).toLocaleString('pt-BR') : '-'
-  }, [records])
+  }, [filteredRecords])
 
   const dailyTrend = useMemo<AggregatedDay[]>(() => {
     const map = new Map<string, AggregatedDay>()
-    records.forEach(record => {
+    filteredRecords.forEach(record => {
       const existing = map.get(record.ref_date)
       const recebidas = record.oportunidades_recebidas || 0
       const ganhas = record.oportunidades_ganhas || 0
@@ -271,7 +288,24 @@ export default function PiperunDetail() {
           <span className="text-xs bg-bg2/60 text-text px-2 py-1 rounded-md">Última sincronização: {lastUpdatedLabel}</span>
         </motion.div>
         <motion.div className="mt-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.25 }}>
-          <span className="text-sm text-text2">Pipelines monitoradas: {pipelineGroups.length}</span>
+          <div className="flex flex-wrap items-center gap-3 text-sm text-text2">
+            <span>Pipelines disponíveis: {availablePipelines.length}</span>
+            {selectedPipeline !== 'all' && (
+              <span>Exibindo: {pipelineGroups[0]?.name || '—'}</span>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <select
+              value={selectedPipeline}
+              onChange={event => setSelectedPipeline(event.target.value)}
+              className="bg-bg2 border border-bg2/60 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/70"
+            >
+              <option value='all'>Todas as pipelines</option>
+              {availablePipelines.map(pipeline => (
+                <option key={pipeline.id} value={pipeline.id}>{pipeline.name}</option>
+              ))}
+            </select>
+          </div>
           <Link to="/" className="text-blue-400 hover:underline inline-flex items-center gap-2 group">
             <motion.span whileHover={{ x: -4 }} transition={{ type: 'spring', stiffness: 320 }}>
               Voltar ao dashboard
