@@ -49,6 +49,9 @@ export default function StatusBar({ cycle }: StatusBarProps) {
         transition={{ duration: 0.5, delay: 0.2 }}
       >
         <nav className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+          <Link to="/relatorio-geral" className="hover:text-neonAqua transition-colors whitespace-nowrap font-semibold text-neonAqua/80">
+            Relatório Geral
+          </Link>
           <Link to="/meta-ads" className="hover:text-neonAqua transition-colors whitespace-nowrap">Meta Ads</Link>
           <Link to="/google-ads" className="hover:text-neonAqua transition-colors whitespace-nowrap">Google Ads</Link>
           <Link to="/piperun" className="hover:text-neonAqua transition-colors">PipeRun</Link>

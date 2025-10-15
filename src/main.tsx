@@ -10,6 +10,7 @@ import PiperunDetail from './pages/PiperunDetail.tsx'
 import N8nDetail from './pages/N8nDetail.tsx'
 import EvolutionDetail from './pages/EvolutionDetail.tsx'
 import TiDetail from './pages/TiDetail.tsx'
+import RelatorioGeral from './pages/RelatorioGeral.tsx'
 import './index.css'
 
 const queryClient = new QueryClient()
@@ -27,6 +28,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="/n8n" element={<N8nDetail />} />
           <Route path="/evolution" element={<EvolutionDetail />} />
           <Route path="/ti" element={<TiDetail />} />
+          <Route path="/relatorio-geral" element={<RelatorioGeral />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
