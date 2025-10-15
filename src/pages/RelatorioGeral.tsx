@@ -33,6 +33,10 @@ interface ContaAzulRaw {
   ref_date: string
   recebiveisHojeValor: NumericLike
   entradaValor: NumericLike
+  recebiveis7DiasValor: NumericLike
+  pagaveis7DiasValor: NumericLike
+  inadimplentesValor: NumericLike
+  inadimplentesQuant: NumericLike
   updated_at?: string
 }
 
@@ -40,6 +44,10 @@ interface ContaAzulRecord {
   ref_date: string
   recebiveisHojeValor: number
   entradaValor: number
+  recebiveis7DiasValor: number
+  pagaveis7DiasValor: number
+  inadimplentesValor: number
+  inadimplentesQuant: number
   updated_at: string
 }
 
@@ -59,6 +67,7 @@ type DailyStats = {
   total: number
   average: number
   last: DailyValue | null
+  previous: DailyValue | null
   best: DailyValue | null
   worst: DailyValue | null
 }
@@ -104,6 +113,10 @@ function normalizeContaAzul(record: ContaAzulRaw): ContaAzulRecord {
     ref_date: record.ref_date,
     recebiveisHojeValor: toNumber(record.recebiveisHojeValor),
     entradaValor: toNumber(record.entradaValor),
+    recebiveis7DiasValor: toNumber(record.recebiveis7DiasValor),
+    pagaveis7DiasValor: toNumber(record.pagaveis7DiasValor),
+    inadimplentesValor: toNumber(record.inadimplentesValor),
+    inadimplentesQuant: toNumber(record.inadimplentesQuant),
     updated_at: record.updated_at ?? ''
   }
 }
@@ -150,11 +163,12 @@ function buildDailySeries<T>(
 
 function computeDailyStats(series: DailyValue[]): DailyStats {
   if (!series.length) {
-    return { total: 0, average: 0, last: null, best: null, worst: null }
+    return { total: 0, average: 0, last: null, previous: null, best: null, worst: null }
   }
 
   const total = series.reduce((acc, point) => acc + point.value, 0)
   const average = total / series.length
+  const previous = series.length > 1 ? series[series.length - 2] : null
   const best = series.reduce(
     (acc: DailyValue | null, point) => (acc === null || point.value > acc.value ? point : acc),
     null
@@ -168,6 +182,7 @@ function computeDailyStats(series: DailyValue[]): DailyStats {
     total,
     average,
     last: series[series.length - 1] ?? null,
+    previous,
     best,
     worst
   }
@@ -185,6 +200,11 @@ function formatPercentage(value: number): string {
   if (!Number.isFinite(value)) return '--'
   const sign = value > 0 ? '+' : ''
   return `${sign}${value.toFixed(1)}%`
+}
+
+function computeDeltaPercent(current: number | null | undefined, base: number | null | undefined) {
+  if (current == null || base == null || base === 0) return null
+  return ((current - base) / base) * 100
 }
 
 function MetricTile({ label, value }: { label: string; value: string }) {
@@ -310,6 +330,30 @@ export default function RelatorioGeral() {
     [contaDaily]
   )
 
+  const contaLatest = useMemo(() => {
+    if (!contaMonthly.length) return null
+    const toTimestamp = (value: string | undefined) => {
+      if (!value) return Number.NEGATIVE_INFINITY
+      const normalized = value.includes('T') ? value : `${value}T00:00:00`
+      const ts = new Date(normalized).getTime()
+      return Number.isFinite(ts) ? ts : Number.NEGATIVE_INFINITY
+    }
+
+    return contaMonthly.reduce<ContaAzulRecord | null>((latest, record) => {
+      if (!latest) return record
+      const currentDate = toTimestamp(record.ref_date)
+      const latestDate = toTimestamp(latest.ref_date)
+
+      if (currentDate > latestDate) return record
+      if (currentDate < latestDate) return latest
+
+      const currentUpdated = toTimestamp(record.updated_at)
+      const latestUpdated = toTimestamp(latest.updated_at)
+      if (currentUpdated > latestUpdated) return record
+      return latest
+    }, null)
+  }, [contaMonthly])
+
   const targetPipelineRecords = useMemo(() => {
     return piperunMonthly.filter(record => normalizeText(record.pipeline_name) === TARGET_PIPELINE_KEY)
   }, [piperunMonthly])
@@ -358,6 +402,20 @@ export default function RelatorioGeral() {
 
   const metaStats = useMemo(() => computeDailyStats(metaDaily), [metaDaily])
   const googleStats = useMemo(() => computeDailyStats(googleDaily), [googleDaily])
+  const metaDeltaAvg = metaStats.last ? computeDeltaPercent(metaStats.last.value, metaStats.average) : null
+  const metaDeltaPrev =
+    metaStats.last && metaStats.previous ? computeDeltaPercent(metaStats.last.value, metaStats.previous.value) : null
+  const googleDeltaAvg = googleStats.last
+    ? computeDeltaPercent(googleStats.last.value, googleStats.average)
+    : null
+  const googleDeltaPrev =
+    googleStats.last && googleStats.previous
+      ? computeDeltaPercent(googleStats.last.value, googleStats.previous.value)
+      : null
+  const pipelineDeltaPrev =
+    pipelineRecebidasStats.last && pipelineRecebidasStats.previous
+      ? computeDeltaPercent(pipelineRecebidasStats.last.value, pipelineRecebidasStats.previous.value)
+      : null
 
   return (
     <div className="min-h-screen bg-bg text-text px-4 sm:px-6 lg:px-8 py-6">
@@ -382,7 +440,7 @@ export default function RelatorioGeral() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            Consolidacao dos principais indicadores dos sistemas nos ultimos 14 dias, com filtro mensal.
+            Consolidacao dos principais indicadores dos sistemas, com filtro mensal.
           </motion.p>
         </div>
         <motion.div
@@ -502,7 +560,28 @@ export default function RelatorioGeral() {
 
               <div className="bg-white/5 border border-white/10 rounded-xl p-3">
                 <span className="text-sm font-semibold text-text block mb-2">Insights rapidos</span>
+
                 <ul className="space-y-2 text-xs sm:text-sm text-text2">
+                  <li>
+                    <span className="text-text">Total de leads no periodo:</span>{' '}
+                    {fmtNum(metaStats.total)}
+                  </li>
+                  <li>
+                    <span className="text-text">Media diaria do periodo:</span>{' '}
+                    {formatDecimal(metaStats.average)}
+                  </li>
+                  {metaDeltaAvg !== null && (
+                    <li>
+                      <span className="text-text">Ultimo dia vs media:</span>{' '}
+                      {formatPercentage(metaDeltaAvg)}
+                    </li>
+                  )}
+                  {metaDeltaPrev !== null && (
+                    <li>
+                      <span className="text-text">Ultimo dia vs dia anterior:</span>{' '}
+                      {formatPercentage(metaDeltaPrev)}
+                    </li>
+                  )}
                   {metaStats.best && (
                     <li>
                       <span className="text-text">Dia com maior geracao:</span>{' '}
@@ -511,13 +590,13 @@ export default function RelatorioGeral() {
                   )}
                   {metaStats.worst && (
                     <li>
-                      <span className="text-text">Dia de menor resultado:</span>{' '}
+                      <span className="text-text">Dia de menor geracao:</span>{' '}
                       {formatDateLabel(metaStats.worst.date)} - {fmtNum(metaStats.worst.value)} leads
                     </li>
                   )}
                   {metaStats.last && (
                     <li>
-                      <span className="text-text">Ultima atualizacao:</span>{' '}
+                      <span className="text-text">UUltima atualizacao:</span>{' '}
                       {formatDateLabel(metaStats.last.date)} - {fmtNum(metaStats.last.value)} leads
                     </li>
                   )}
@@ -587,7 +666,28 @@ export default function RelatorioGeral() {
 
               <div className="bg-white/5 border border-white/10 rounded-xl p-3">
                 <span className="text-sm font-semibold text-text block mb-2">Insights rapidos</span>
+
                 <ul className="space-y-2 text-xs sm:text-sm text-text2">
+                  <li>
+                    <span className="text-text">Total de leads no periodo:</span>{' '}
+                    {fmtNum(googleStats.total)}
+                  </li>
+                  <li>
+                    <span className="text-text">Media diaria do periodo:</span>{' '}
+                    {formatDecimal(googleStats.average)}
+                  </li>
+                  {googleDeltaAvg !== null && (
+                    <li>
+                      <span className="text-text">Ultimo dia vs media:</span>{' '}
+                      {formatPercentage(googleDeltaAvg)}
+                    </li>
+                  )}
+                  {googleDeltaPrev !== null && (
+                    <li>
+                      <span className="text-text">Ultimo dia vs dia anterior:</span>{' '}
+                      {formatPercentage(googleDeltaPrev)}
+                    </li>
+                  )}
                   {googleStats.best && (
                     <li>
                       <span className="text-text">Dia com maior geracao:</span>{' '}
@@ -596,13 +696,13 @@ export default function RelatorioGeral() {
                   )}
                   {googleStats.worst && (
                     <li>
-                      <span className="text-text">Dia de menor resultado:</span>{' '}
+                      <span className="text-text">Dia de menor geracao:</span>{' '}
                       {formatDateLabel(googleStats.worst.date)} - {fmtNum(googleStats.worst.value)} leads
                     </li>
                   )}
                   {googleStats.last && (
                     <li>
-                      <span className="text-text">Ultima atualizacao:</span>{' '}
+                      <span className="text-text">UUltima atualizacao:</span>{' '}
                       {formatDateLabel(googleStats.last.date)} - {fmtNum(googleStats.last.value)} leads
                     </li>
                   )}
@@ -635,9 +735,9 @@ export default function RelatorioGeral() {
                 value={fmtMoney(contaRecebidoStats.average)}
               />
               <MetricTile
-                label="Saldo a receber (ultimo dia)"
+                label="Valor recebido (ultimo dia)"
                 value={
-                  contaReceberStats.last ? fmtMoney(contaReceberStats.last.value) : fmtMoney(0)
+                  contaRecebidoStats.last ? fmtMoney(contaRecebidoStats.last.value) : fmtMoney(0)
                 }
               />
               <MetricTile
@@ -654,7 +754,7 @@ export default function RelatorioGeral() {
             >
               <div className="bg-white/5 border border-white/10 rounded-xl p-3">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-semibold text-text">Fluxo financeiro diario</span>
+                  <span className="text-sm font-semibold text-text">Fluxo financeiro dirio</span>
                 </div>
                 <div className="h-56 sm:h-64">
                   {contaDaily.length ? (
@@ -674,7 +774,7 @@ export default function RelatorioGeral() {
                             return [fmtMoney(value), 'Recebido']
                           }}
                         />
-                        <Legend formatter={value => (value === 'receber' ? 'A receber' : 'Recebido')} />
+                        <Legend />
                         <Bar
                           dataKey="recebido"
                           fill="#22C55E"
@@ -702,6 +802,40 @@ export default function RelatorioGeral() {
               <div className="bg-white/5 border border-white/10 rounded-xl p-3">
                 <span className="text-sm font-semibold text-text block mb-2">Insights rapidos</span>
                 <ul className="space-y-2 text-xs sm:text-sm text-text2">
+                  {contaReceberStats.last && (
+                    <li>
+                      <span className="text-text">Saldo atual a receber:</span>{' '}
+                      {formatDateLabel(contaReceberStats.last.date)} - {fmtMoney(contaReceberStats.last.value)}
+                    </li>
+                  )}
+                  <li>
+                    <span className="text-text">Media diaria recebida:</span>{' '}
+                    {fmtMoney(contaRecebidoStats.average)}
+                  </li>
+                  {contaLatest && (
+                    <li>
+                      <span className="text-text">Valor inadimplente (mes):</span>{' '}
+                      {fmtMoney(contaLatest.inadimplentesValor)}
+                    </li>
+                  )}
+                  {contaLatest && (
+                    <li>
+                      <span className="text-text">Clientes inadimplentes:</span>{' '}
+                      {fmtNum(contaLatest.inadimplentesQuant)}
+                    </li>
+                  )}
+                  {contaLatest && (
+                    <li>
+                      <span className="text-text">Recebiveis proximos 7 dias:</span>{' '}
+                      {fmtMoney(contaLatest.recebiveis7DiasValor)}
+                    </li>
+                  )}
+                  {contaLatest && (
+                    <li>
+                      <span className="text-text">Pagaveis proximos 7 dias:</span>{' '}
+                      {fmtMoney(contaLatest.pagaveis7DiasValor)}
+                    </li>
+                  )}
                   {contaRecebidoStats.best && (
                     <li>
                       <span className="text-text">Dia de maior recebimento:</span>{' '}
@@ -776,20 +910,16 @@ export default function RelatorioGeral() {
                         <Tooltip
                           labelFormatter={formatDateLabel}
                           formatter={(value: number, name) => {
-                            if (name === 'ganhas') return [fmtNum(value), 'Oportunidades ganhas']
-                            return [fmtNum(value), 'Oportunidades recebidas']
+                            if (name === 'ganhas') return [fmtNum(value), 'Ganhas']
+                            return [fmtNum(value), 'Recebidas']
                           }}
                         />
-                        <Legend
-                          formatter={value =>
-                            value === 'ganhas' ? 'Oportunidades ganhas' : 'Oportunidades recebidas'
-                          }
-                        />
+                        <Legend formatter={value => (value === 'ganhas' ? 'Ganhas' : 'Recebidas')} />
                         <Bar
                           dataKey="recebidas"
                           fill="#818CF8"
                           radius={[4, 4, 0, 0]}
-                          name="Oportunidades recebidas"
+                          name="Recebidas"
                         />
                         <Line
                           type="monotone"
@@ -797,7 +927,7 @@ export default function RelatorioGeral() {
                           stroke="#22C55E"
                           strokeWidth={3}
                           dot={{ r: 2 }}
-                          name="Oportunidades ganhas"
+                          name="Ganhas"
                         />
                       </ComposedChart>
                     </ResponsiveContainer>
@@ -811,7 +941,36 @@ export default function RelatorioGeral() {
 
               <div className="bg-white/5 border border-white/10 rounded-xl p-3">
                 <span className="text-sm font-semibold text-text block mb-2">Insights rapidos</span>
+
                 <ul className="space-y-2 text-xs sm:text-sm text-text2">
+                  <li>
+                    <span className="text-text">Total recebidas no periodo:</span>{' '}
+                    {fmtNum(pipelineRecebidasStats.total)}
+                  </li>
+                  <li>
+                    <span className="text-text">Total ganhas no periodo:</span>{' '}
+                    {fmtNum(pipelineGanhasStats.total)}
+                  </li>
+                  <li>
+                    <span className="text-text">Media diaria recebidas:</span>{' '}
+                    {formatDecimal(pipelineRecebidasStats.average)}
+                  </li>
+                  <li>
+                    <span className="text-text">Media diaria ganhas:</span>{' '}
+                    {formatDecimal(pipelineGanhasStats.average)}
+                  </li>
+                  {pipelineRecebidasStats.last && (
+                    <li>
+                      <span className="text-text">Ultimo dia registrado:</span>{' '}
+                      {formatDateLabel(pipelineRecebidasStats.last.date)} - {fmtNum(pipelineRecebidasStats.last.value)} recebidas
+                    </li>
+                  )}
+                  {pipelineDeltaPrev !== null && (
+                    <li>
+                      <span className="text-text">Tendencia vs dia anterior (recebidas):</span>{' '}
+                      {formatPercentage(pipelineDeltaPrev)}
+                    </li>
+                  )}
                   {pipelineRecebidasStats.best && (
                     <li>
                       <span className="text-text">Dia com mais oportunidades:</span>{' '}
