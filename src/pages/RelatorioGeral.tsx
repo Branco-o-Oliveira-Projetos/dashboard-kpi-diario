@@ -584,19 +584,19 @@ export default function RelatorioGeral() {
                   )}
                   {metaStats.best && (
                     <li>
-                      <span className="text-text">Dia com maior geracao:</span>{' '}
+                      <span className="text-text">Dia com maior geração:</span>{' '}
                       {formatDateLabel(metaStats.best.date)} - {fmtNum(metaStats.best.value)} leads
                     </li>
                   )}
                   {metaStats.worst && (
                     <li>
-                      <span className="text-text">Dia de menor geracao:</span>{' '}
+                      <span className="text-text">Dia de menor geração:</span>{' '}
                       {formatDateLabel(metaStats.worst.date)} - {fmtNum(metaStats.worst.value)} leads
                     </li>
                   )}
                   {metaStats.last && (
                     <li>
-                      <span className="text-text">UUltima atualizacao:</span>{' '}
+                      <span className="text-text">Última atualização:</span>{' '}
                       {formatDateLabel(metaStats.last.date)} - {fmtNum(metaStats.last.value)} leads
                     </li>
                   )}
@@ -669,40 +669,40 @@ export default function RelatorioGeral() {
 
                 <ul className="space-y-2 text-xs sm:text-sm text-text2">
                   <li>
-                    <span className="text-text">Total de leads no periodo:</span>{' '}
+                    <span className="text-text">Total de leads no período:</span>{' '}
                     {fmtNum(googleStats.total)}
                   </li>
                   <li>
-                    <span className="text-text">Media diaria do periodo:</span>{' '}
+                    <span className="text-text">Média diária do período:</span>{' '}
                     {formatDecimal(googleStats.average)}
                   </li>
                   {googleDeltaAvg !== null && (
                     <li>
-                      <span className="text-text">Ultimo dia vs media:</span>{' '}
+                      <span className="text-text">Último dia vs média:</span>{' '}
                       {formatPercentage(googleDeltaAvg)}
                     </li>
                   )}
                   {googleDeltaPrev !== null && (
                     <li>
-                      <span className="text-text">Ultimo dia vs dia anterior:</span>{' '}
+                      <span className="text-text">Último dia vs dia anterior:</span>{' '}
                       {formatPercentage(googleDeltaPrev)}
                     </li>
                   )}
                   {googleStats.best && (
                     <li>
-                      <span className="text-text">Dia com maior geracao:</span>{' '}
+                      <span className="text-text">Dia com maior geração:</span>{' '}
                       {formatDateLabel(googleStats.best.date)} - {fmtNum(googleStats.best.value)} leads
                     </li>
                   )}
                   {googleStats.worst && (
                     <li>
-                      <span className="text-text">Dia de menor geracao:</span>{' '}
+                      <span className="text-text">Dia de menor geração:</span>{' '}
                       {formatDateLabel(googleStats.worst.date)} - {fmtNum(googleStats.worst.value)} leads
                     </li>
                   )}
                   {googleStats.last && (
                     <li>
-                      <span className="text-text">UUltima atualizacao:</span>{' '}
+                      <span className="text-text">Última atualização:</span>{' '}
                       {formatDateLabel(googleStats.last.date)} - {fmtNum(googleStats.last.value)} leads
                     </li>
                   )}
@@ -721,7 +721,7 @@ export default function RelatorioGeral() {
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3 mb-4">
               <div>
                 <h2 className="card-title mb-1">{SYSTEMS.conta_azul.title}</h2>
-                <span className="text-xs text-text2">Mes selecionado: {formatMonthLabel(selectedMonth)}</span>
+                <span className="text-xs text-text2">Mês selecionado: {formatMonthLabel(selectedMonth)}</span>
               </div>
             </div>
 
@@ -735,13 +735,13 @@ export default function RelatorioGeral() {
                 value={fmtMoney(contaRecebidoStats.average)}
               />
               <MetricTile
-                label="Valor recebido (ultimo dia)"
+                label="Valor recebido hoje"
                 value={
                   contaRecebidoStats.last ? fmtMoney(contaRecebidoStats.last.value) : fmtMoney(0)
                 }
               />
               <MetricTile
-                label="Maior saldo a receber"
+                label="Valor do melhor dia a receber"
                 value={contaReceberStats.best ? fmtMoney(contaReceberStats.best.value) : '--'}
               />
             </div>
@@ -754,7 +754,7 @@ export default function RelatorioGeral() {
             >
               <div className="bg-white/5 border border-white/10 rounded-xl p-3">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-semibold text-text">Fluxo financeiro dirio</span>
+                  <span className="text-sm font-semibold text-text">Fluxo financeiro diário</span>
                 </div>
                 <div className="h-56 sm:h-64">
                   {contaDaily.length ? (
@@ -800,11 +800,11 @@ export default function RelatorioGeral() {
               </div>
 
               <div className="bg-white/5 border border-white/10 rounded-xl p-3">
-                <span className="text-sm font-semibold text-text block mb-2">Insights rapidos</span>
+                <span className="text-sm font-semibold text-text block mb-2">Insights rápidos</span>
                 <ul className="space-y-2 text-xs sm:text-sm text-text2">
                   {contaReceberStats.last && (
                     <li>
-                      <span className="text-text">Saldo atual a receber:</span>{' '}
+                      <span className="text-text">Valor a receber hoje:</span>{' '}
                       {formatDateLabel(contaReceberStats.last.date)} - {fmtMoney(contaReceberStats.last.value)}
                     </li>
                   )}
@@ -814,13 +814,13 @@ export default function RelatorioGeral() {
                   </li>
                   {contaLatest && (
                     <li>
-                      <span className="text-text">Valor inadimplente (mes):</span>{' '}
+                      <span className="text-text">Valor inadimplente no mês:</span>{' '}
                       {fmtMoney(contaLatest.inadimplentesValor)}
                     </li>
                   )}
                   {contaLatest && (
                     <li>
-                      <span className="text-text">Clientes inadimplentes:</span>{' '}
+                      <span className="text-text">Clientes inadimplentes no mês:</span>{' '}
                       {fmtNum(contaLatest.inadimplentesQuant)}
                     </li>
                   )}
@@ -844,7 +844,7 @@ export default function RelatorioGeral() {
                   )}
                   {contaReceberStats.best && (
                     <li>
-                      <span className="text-text">Maior saldo projetado:</span>{' '}
+                      <span className="text-text">Maior recebimento esperado:</span>{' '}
                       {formatDateLabel(contaReceberStats.best.date)} - {fmtMoney(contaReceberStats.best.value)}
                     </li>
                   )}
@@ -914,7 +914,7 @@ export default function RelatorioGeral() {
                             return [fmtNum(value), 'Recebidas']
                           }}
                         />
-                        <Legend formatter={value => (value === 'ganhas' ? 'Ganhas' : 'Recebidas')} />
+                        <Legend />
                         <Bar
                           dataKey="recebidas"
                           fill="#818CF8"
